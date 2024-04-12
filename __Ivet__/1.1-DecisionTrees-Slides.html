@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.552">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ivet Acosta">
+
+<title>Tree based methods</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="1.1-DecisionTrees-Slides_files/libs/clipboard/clipboard.min.js"></script>
+<script src="1.1-DecisionTrees-Slides_files/libs/quarto-html/quarto.js"></script>
+<script src="1.1-DecisionTrees-Slides_files/libs/quarto-html/popper.min.js"></script>
+<script src="1.1-DecisionTrees-Slides_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="1.1-DecisionTrees-Slides_files/libs/quarto-html/anchor.min.js"></script>
+<link href="1.1-DecisionTrees-Slides_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="1.1-DecisionTrees-Slides_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="1.1-DecisionTrees-Slides_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="1.1-DecisionTrees-Slides_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="1.1-DecisionTrees-Slides_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="1.1-DecisionTrees-Slides_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="1.1-DecisionTrees-Slides_files/libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction-to-decision-trees" id="toc-introduction-to-decision-trees" class="nav-link active" data-scroll-target="#introduction-to-decision-trees"><span class="header-section-number">1</span> Introduction to Decision Trees</a>
+  <ul class="collapse">
+  <li><a href="#motivation" id="toc-motivation" class="nav-link" data-scroll-target="#motivation"><span class="header-section-number">1.1</span> Motivation</a></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples"><span class="header-section-number">1.2</span> Examples</a></li>
+  <li><a href="#an-intuitive-approach" id="toc-an-intuitive-approach" class="nav-link" data-scroll-target="#an-intuitive-approach"><span class="header-section-number">1.3</span> An intuitive approach</a></li>
+  <li><a href="#so-what-is-a-decision-tree" id="toc-so-what-is-a-decision-tree" class="nav-link" data-scroll-target="#so-what-is-a-decision-tree"><span class="header-section-number">1.4</span> So, what is a decision tree?</a></li>
+  <li><a href="#what-do-we-need-to-learn" id="toc-what-do-we-need-to-learn" class="nav-link" data-scroll-target="#what-do-we-need-to-learn"><span class="header-section-number">1.5</span> What do we need to learn?</a></li>
+  <li><a href="#more-about-context" id="toc-more-about-context" class="nav-link" data-scroll-target="#more-about-context"><span class="header-section-number">1.6</span> More about context</a></li>
+  <li><a href="#types-of-decision-trees" id="toc-types-of-decision-trees" class="nav-link" data-scroll-target="#types-of-decision-trees"><span class="header-section-number">1.7</span> Types of decision trees</a></li>
+  <li><a href="#tree-building-with-r" id="toc-tree-building-with-r" class="nav-link" data-scroll-target="#tree-building-with-r"><span class="header-section-number">1.8</span> Tree building with R</a></li>
+  <li><a href="#tree-building-with-python" id="toc-tree-building-with-python" class="nav-link" data-scroll-target="#tree-building-with-python"><span class="header-section-number">1.9</span> Tree building with Python</a></li>
+  <li><a href="#starting-with-an-example" id="toc-starting-with-an-example" class="nav-link" data-scroll-target="#starting-with-an-example"><span class="header-section-number">1.10</span> Starting with an example</a></li>
+  <li><a href="#looking-at-the-data" id="toc-looking-at-the-data" class="nav-link" data-scroll-target="#looking-at-the-data"><span class="header-section-number">1.11</span> Looking at the data</a></li>
+  <li><a href="#predicting-diabetes-onset" id="toc-predicting-diabetes-onset" class="nav-link" data-scroll-target="#predicting-diabetes-onset"><span class="header-section-number">1.12</span> Predicting Diabetes onset</a></li>
+  <li><a href="#viewing-the-tree-as-text" id="toc-viewing-the-tree-as-text" class="nav-link" data-scroll-target="#viewing-the-tree-as-text"><span class="header-section-number">1.13</span> Viewing the tree as text</a></li>
+  <li><a href="#plotting-the-tree-1" id="toc-plotting-the-tree-1" class="nav-link" data-scroll-target="#plotting-the-tree-1"><span class="header-section-number">1.14</span> Plotting the tree (1)</a></li>
+  <li><a href="#plotting-the-tree-nicer" id="toc-plotting-the-tree-nicer" class="nav-link" data-scroll-target="#plotting-the-tree-nicer"><span class="header-section-number">1.15</span> Plotting the tree (Nicer)</a></li>
+  <li><a href="#individual-prediction" id="toc-individual-prediction" class="nav-link" data-scroll-target="#individual-prediction"><span class="header-section-number">1.16</span> Individual prediction</a></li>
+  <li><a href="#how-accurate-is-the-model" id="toc-how-accurate-is-the-model" class="nav-link" data-scroll-target="#how-accurate-is-the-model"><span class="header-section-number">1.17</span> How accurate is the model?</a></li>
+  </ul></li>
+  <li><a href="#building-classification-trees" id="toc-building-classification-trees" class="nav-link" data-scroll-target="#building-classification-trees"><span class="header-section-number">2</span> Building Classification Trees</a>
+  <ul class="collapse">
+  <li><a href="#building-the-trees" id="toc-building-the-trees" class="nav-link" data-scroll-target="#building-the-trees"><span class="header-section-number">2.1</span> Building the trees</a></li>
+  <li><a href="#trees-are-supervised-learners" id="toc-trees-are-supervised-learners" class="nav-link" data-scroll-target="#trees-are-supervised-learners"><span class="header-section-number">2.2</span> TREES ARE SUPERVISED LEARNERS</a></li>
+  <li><a href="#trees-and-decision-trees" id="toc-trees-and-decision-trees" class="nav-link" data-scroll-target="#trees-and-decision-trees"><span class="header-section-number">2.3</span> TREES AND DECISION TREES</a></li>
+  <li><a href="#additional-notation" id="toc-additional-notation" class="nav-link" data-scroll-target="#additional-notation"><span class="header-section-number">2.4</span> Additional notation</a></li>
+  <li><a href="#building-a-tree" id="toc-building-a-tree" class="nav-link" data-scroll-target="#building-a-tree"><span class="header-section-number">2.5</span> Building a tree</a></li>
+  <li><a href="#trees-partition-the-space" id="toc-trees-partition-the-space" class="nav-link" data-scroll-target="#trees-partition-the-space"><span class="header-section-number">2.6</span> Trees partition the space</a></li>
+  <li><a href="#the-tree-represents-the-splitting" id="toc-the-tree-represents-the-splitting" class="nav-link" data-scroll-target="#the-tree-represents-the-splitting"><span class="header-section-number">2.7</span> The tree represents the splitting</a></li>
+  <li><a href="#different-splits-are-possible" id="toc-different-splits-are-possible" class="nav-link" data-scroll-target="#different-splits-are-possible"><span class="header-section-number">2.8</span> Different splits are possible</a></li>
+  <li><a href="#construction-of-a-tree" id="toc-construction-of-a-tree" class="nav-link" data-scroll-target="#construction-of-a-tree"><span class="header-section-number">2.9</span> Construction of a tree</a></li>
+  <li><a href="#tb-1.1---split-selection" id="toc-tb-1.1---split-selection" class="nav-link" data-scroll-target="#tb-1.1---split-selection"><span class="header-section-number">2.10</span> TB 1.1 - Split selection</a></li>
+  <li><a href="#tb-1.21---goodness-of-split" id="toc-tb-1.21---goodness-of-split" class="nav-link" data-scroll-target="#tb-1.21---goodness-of-split"><span class="header-section-number">2.11</span> TB 1.21 - Goodness of Split</a></li>
+  <li><a href="#tb-1.2.2---good-splits-vs-bad-splits" id="toc-tb-1.2.2---good-splits-vs-bad-splits" class="nav-link" data-scroll-target="#tb-1.2.2---good-splits-vs-bad-splits"><span class="header-section-number">2.12</span> TB 1.2.2 - Good splits vs bad splits</a></li>
+  <li><a href="#tb-1.2.3---measuring-homogeneity" id="toc-tb-1.2.3---measuring-homogeneity" class="nav-link" data-scroll-target="#tb-1.2.3---measuring-homogeneity"><span class="header-section-number">2.13</span> TB 1.2.3 - Measuring homogeneity</a></li>
+  <li><a href="#tb-1.2.4---impurity-functions" id="toc-tb-1.2.4---impurity-functions" class="nav-link" data-scroll-target="#tb-1.2.4---impurity-functions"><span class="header-section-number">2.14</span> TB 1.2.4 - Impurity functions</a></li>
+  <li><a href="#tb-1.2.5---some-impurity-functions" id="toc-tb-1.2.5---some-impurity-functions" class="nav-link" data-scroll-target="#tb-1.2.5---some-impurity-functions"><span class="header-section-number">2.15</span> TB 1.2.5 - Some Impurity Functions</a></li>
+  <li><a href="#tb-1.2.5-impurity-functions-behavior" id="toc-tb-1.2.5-impurity-functions-behavior" class="nav-link" data-scroll-target="#tb-1.2.5-impurity-functions-behavior"><span class="header-section-number">2.16</span> TB 1.2.5 Impurity functions behavior</a></li>
+  <li><a href="#tb-1.2.6---impurity-for-a-split" id="toc-tb-1.2.6---impurity-for-a-split" class="nav-link" data-scroll-target="#tb-1.2.6---impurity-for-a-split"><span class="header-section-number">2.17</span> TB 1.2.6 - Impurity for a split</a></li>
+  <li><a href="#tb-1.2.7---goodness-of-a-split" id="toc-tb-1.2.7---goodness-of-a-split" class="nav-link" data-scroll-target="#tb-1.2.7---goodness-of-a-split"><span class="header-section-number">2.18</span> TB 1.2.7 - Goodness of a split</a></li>
+  <li><a href="#tb-1.2.8---impurity-score-for-a-node" id="toc-tb-1.2.8---impurity-score-for-a-node" class="nav-link" data-scroll-target="#tb-1.2.8---impurity-score-for-a-node"><span class="header-section-number">2.19</span> TB 1.2.8 - Impurity score for a node</a></li>
+  <li><a href="#tb-1.2.9---applications-of-it" id="toc-tb-1.2.9---applications-of-it" class="nav-link" data-scroll-target="#tb-1.2.9---applications-of-it"><span class="header-section-number">2.20</span> TB 1.2.9 - Applications of <span class="math inline">\(I(t)\)</span></a></li>
+  <li><a href="#tb-1.2.10---entropy-as-an-impurity-measure" id="toc-tb-1.2.10---entropy-as-an-impurity-measure" class="nav-link" data-scroll-target="#tb-1.2.10---entropy-as-an-impurity-measure"><span class="header-section-number">2.21</span> TB 1.2.10 - Entropy as an impurity measure</a></li>
+  <li><a href="#tb-1.2.11---goodness-of-split-based-on-entropy" id="toc-tb-1.2.11---goodness-of-split-based-on-entropy" class="nav-link" data-scroll-target="#tb-1.2.11---goodness-of-split-based-on-entropy"><span class="header-section-number">2.22</span> TB 1.2.11 - Goodness of split based on entropy</a></li>
+  <li><a href="#tb-1.2.12---information-gain" id="toc-tb-1.2.12---information-gain" class="nav-link" data-scroll-target="#tb-1.2.12---information-gain"><span class="header-section-number">2.23</span> TB 1.2.12 - Information gain</a></li>
+  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example"><span class="header-section-number">2.24</span> Example</a></li>
+  <li><a href="#example.-entropy-calculation" id="toc-example.-entropy-calculation" class="nav-link" data-scroll-target="#example.-entropy-calculation"><span class="header-section-number">2.25</span> Example. Entropy Calculation</a></li>
+  <li><a href="#example.-information-gain" id="toc-example.-information-gain" class="nav-link" data-scroll-target="#example.-information-gain"><span class="header-section-number">2.26</span> Example. Information Gain</a></li>
+  </ul></li>
+  <li><a href="#prediction-with-trees" id="toc-prediction-with-trees" class="nav-link" data-scroll-target="#prediction-with-trees"><span class="header-section-number">3</span> Prediction with Trees</a>
+  <ul class="collapse">
+  <li><a href="#tb-2---class-assignment" id="toc-tb-2---class-assignment" class="nav-link" data-scroll-target="#tb-2---class-assignment"><span class="header-section-number">3.1</span> TB 2 - Class Assignment</a></li>
+  <li><a href="#tb-2.1---class-assignment-rules" id="toc-tb-2.1---class-assignment-rules" class="nav-link" data-scroll-target="#tb-2.1---class-assignment-rules"><span class="header-section-number">3.2</span> TB 2.1 - Class Assignment Rules</a></li>
+  <li><a href="#tb-2.2.-estimating-the-error-rate-1" id="toc-tb-2.2.-estimating-the-error-rate-1" class="nav-link" data-scroll-target="#tb-2.2.-estimating-the-error-rate-1"><span class="header-section-number">3.3</span> TB 2.2. Estimating the error rate (1)</a></li>
+  <li><a href="#tb-2.3.-estimating-the-error-rate-2" id="toc-tb-2.3.-estimating-the-error-rate-2" class="nav-link" data-scroll-target="#tb-2.3.-estimating-the-error-rate-2"><span class="header-section-number">3.4</span> TB 2.3. Estimating the error rate (2)</a></li>
+  </ul></li>
+  <li><a href="#obtaining-best-trees" id="toc-obtaining-best-trees" class="nav-link" data-scroll-target="#obtaining-best-trees"><span class="header-section-number">4</span> Obtaining best trees</a>
+  <ul class="collapse">
+  <li><a href="#tb.-3.1---when-to-stop-growing" id="toc-tb.-3.1---when-to-stop-growing" class="nav-link" data-scroll-target="#tb.-3.1---when-to-stop-growing"><span class="header-section-number">4.1</span> TB. 3.1 - When to stop growing</a></li>
+  <li><a href="#tb-3.2-stop-splitting-criteria" id="toc-tb-3.2-stop-splitting-criteria" class="nav-link" data-scroll-target="#tb-3.2-stop-splitting-criteria"><span class="header-section-number">4.2</span> TB 3.2 Stop splitting criteria</a></li>
+  <li><a href="#tb-3.3-optimizing-the-tree" id="toc-tb-3.3-optimizing-the-tree" class="nav-link" data-scroll-target="#tb-3.3-optimizing-the-tree"><span class="header-section-number">4.3</span> TB 3.3 Optimizing the Tree</a></li>
+  <li><a href="#tb-3.4-pruning-methods" id="toc-tb-3.4-pruning-methods" class="nav-link" data-scroll-target="#tb-3.4-pruning-methods"><span class="header-section-number">4.4</span> TB 3.4 Pruning methods</a></li>
+  <li><a href="#tb-3.5-cost-complexity-pruning" id="toc-tb-3.5-cost-complexity-pruning" class="nav-link" data-scroll-target="#tb-3.5-cost-complexity-pruning"><span class="header-section-number">4.5</span> TB 3.5 Cost complexity pruning</a></li>
+  </ul></li>
+  <li><a href="#regression-trees" id="toc-regression-trees" class="nav-link" data-scroll-target="#regression-trees"><span class="header-section-number">5</span> Regression Trees</a>
+  <ul class="collapse">
+  <li><a href="#regression-modelling-with-trees" id="toc-regression-modelling-with-trees" class="nav-link" data-scroll-target="#regression-modelling-with-trees"><span class="header-section-number">5.1</span> Regression modelling with trees</a></li>
+  <li><a href="#classification-vs-regression-trees" id="toc-classification-vs-regression-trees" class="nav-link" data-scroll-target="#classification-vs-regression-trees"><span class="header-section-number">5.2</span> Classification vs Regression Trees</a></li>
+  <li><a href="#regression-tree-example" id="toc-regression-tree-example" class="nav-link" data-scroll-target="#regression-tree-example"><span class="header-section-number">5.3</span> Regression tree example</a></li>
+  <li><a href="#non-linear-relationships" id="toc-non-linear-relationships" class="nav-link" data-scroll-target="#non-linear-relationships"><span class="header-section-number">5.4</span> Non linear relationships!</a></li>
+  <li><a href="#building-the-tree-1-splitting" id="toc-building-the-tree-1-splitting" class="nav-link" data-scroll-target="#building-the-tree-1-splitting"><span class="header-section-number">5.5</span> Building the tree (1): Splitting</a></li>
+  <li><a href="#building-the-tree-2-splitting" id="toc-building-the-tree-2-splitting" class="nav-link" data-scroll-target="#building-the-tree-2-splitting"><span class="header-section-number">5.6</span> Building the tree (2): Splitting</a></li>
+  <li><a href="#building-the-tree-3-prediction" id="toc-building-the-tree-3-prediction" class="nav-link" data-scroll-target="#building-the-tree-3-prediction"><span class="header-section-number">5.7</span> Building the tree (3): Prediction</a></li>
+  <li><a href="#example-a-regression-tree" id="toc-example-a-regression-tree" class="nav-link" data-scroll-target="#example-a-regression-tree"><span class="header-section-number">5.8</span> Example: A regression tree</a></li>
+  <li><a href="#example-plot-the-tree" id="toc-example-plot-the-tree" class="nav-link" data-scroll-target="#example-plot-the-tree"><span class="header-section-number">5.9</span> Example: Plot the tree</a></li>
+  </ul></li>
+  <li><a href="#error-estimation-and-optimization-for-regression-trees" id="toc-error-estimation-and-optimization-for-regression-trees" class="nav-link" data-scroll-target="#error-estimation-and-optimization-for-regression-trees"><span class="header-section-number">6</span> Error estimation and optimization for regression trees</a>
+  <ul class="collapse">
+  <li><a href="#prunning-the-tree-1" id="toc-prunning-the-tree-1" class="nav-link" data-scroll-target="#prunning-the-tree-1"><span class="header-section-number">6.1</span> Prunning the tree (1)</a></li>
+  <li><a href="#tuning-parameter-alpha" id="toc-tuning-parameter-alpha" class="nav-link" data-scroll-target="#tuning-parameter-alpha"><span class="header-section-number">6.2</span> Tuning parameter <span class="math inline">\(\alpha\)</span></a></li>
+  <li><a href="#optimizing-the-tree-alpha" id="toc-optimizing-the-tree-alpha" class="nav-link" data-scroll-target="#optimizing-the-tree-alpha"><span class="header-section-number">6.3</span> Optimizing the tree (<span class="math inline">\(\alpha\)</span>)</a></li>
+  <li><a href="#example-prune-the-tree" id="toc-example-prune-the-tree" class="nav-link" data-scroll-target="#example-prune-the-tree"><span class="header-section-number">6.4</span> Example: Prune the tree</a></li>
+  </ul></li>
+  <li><a href="#advantages-and-disadvantages-of-trees" id="toc-advantages-and-disadvantages-of-trees" class="nav-link" data-scroll-target="#advantages-and-disadvantages-of-trees"><span class="header-section-number">7</span> Advantages and disadvantages of trees</a>
+  <ul class="collapse">
+  <li><a href="#trees-have-many-advantages" id="toc-trees-have-many-advantages" class="nav-link" data-scroll-target="#trees-have-many-advantages"><span class="header-section-number">7.1</span> Trees have many advantages</a></li>
+  <li><a href="#but-they-come-at-a-price" id="toc-but-they-come-at-a-price" class="nav-link" data-scroll-target="#but-they-come-at-a-price"><span class="header-section-number">7.2</span> But they come at a price</a></li>
+  </ul></li>
+  <li><a href="#references-and-resources" id="toc-references-and-resources" class="nav-link" data-scroll-target="#references-and-resources"><span class="header-section-number">8</span> References and Resources</a>
+  <ul class="collapse">
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">8.1</span> References</a></li>
+  <li><a href="#complementary-references" id="toc-complementary-references" class="nav-link" data-scroll-target="#complementary-references"><span class="header-section-number">8.2</span> Complementary references</a></li>
+  <li><a href="#resources" id="toc-resources" class="nav-link" data-scroll-target="#resources"><span class="header-section-number">8.3</span> Resources</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Tree based methods</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ivet Acosta </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction-to-decision-trees" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Introduction to Decision Trees</h1>
+<section id="motivation" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="motivation"><span class="header-section-number">1.1</span> Motivation</h2>
+<ul>
+<li>In many real-world applications, decisions need to be made based on complex, multi-dimensional data.</li>
+<li>One goal of statistical analysis is to provide insights and guidance to support these decisions.</li>
+<li>Decision trees provide a way to organize and summarize information in a way that is easy to understand and use in decision-making.</li>
+</ul>
+</section>
+<section id="examples" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="examples"><span class="header-section-number">1.2</span> Examples</h2>
+<ul>
+<li><p>A bank needs to have a way to decide if/when a customer can be granted a loan.</p></li>
+<li><p>A doctor may need to decide if a patient has to undergo a surgery or a less aggressive treatment.</p></li>
+<li><p>A company may need to decide about investing in new technologies or stay with the traditional ones.</p></li>
+</ul>
+<p>In all those cases a decision tree may provide a structured approach to decision-making that is based on data and can be easily explained and justified.</p>
+</section>
+<section id="an-intuitive-approach" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="an-intuitive-approach"><span class="header-section-number">1.3</span> An intuitive approach</h2>
+<div class="columns">
+<div class="column" style="width:40%;">
+<p>Decisions are often based on asking several questions on available information whose answers induce binary splits on data that end up with some grouping or classification.</p>
+</div><div class="column" style="width:60%;">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/decTree4HypertensionNew.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Assets/decTree4HypertensionNew.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>A doctor may classify patients at high or low cardiovascular risk using some type of decision tree</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="so-what-is-a-decision-tree" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="so-what-is-a-decision-tree"><span class="header-section-number">1.4</span> So, what is a decision tree?</h2>
+<ul>
+<li><p>A decision tree is a graphical representation of a series of decisions and their potential outcomes.</p></li>
+<li><p>It is obtained by recursively <em>stratifying</em> or <em>segmenting</em> the <em>feature space</em> into a number of simple regions.</p></li>
+<li><p>Each region (decision) corresponds to a <em>node</em> in the tree, and each potential outcome to a <em>branch</em>.</p></li>
+<li><p>The tree structure can be used to guide decision-making based on data.</p></li>
+</ul>
+<!-- ## A first look at pros and cons   (CREC QUE NO CAL)(-->
+<!-- -   Trees provide an simple approach to classification and prediction for both categorical or numerical outcomes. -->
+<!-- -   The results are intuitive and easy to explain and interpret. -->
+<!-- -   They are, however, not very accurate, but -->
+<!-- -   Aggregation of multiple trees built on the same data can result on dramatic improvements in prediction accuracy, at the expense of some loss of interpretation. -->
+</section>
+<section id="what-do-we-need-to-learn" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="what-do-we-need-to-learn"><span class="header-section-number">1.5</span> What do we need to learn?</h2>
+<ul>
+<li><p>We need <strong>context</strong>:</p>
+<ul>
+<li><p>When is it appropriate to rely on decision trees?</p></li>
+<li><p>When would other approaches be preferable?</p></li>
+<li><p>What type of decision trees can be used?</p></li>
+</ul></li>
+<li><p>We need to know how to <strong>build good trees</strong></p>
+<ul>
+<li>How do we <em>construct</em> a tree?</li>
+<li>How do we <em>optimize</em> the tree?</li>
+<li>How do we <em>evaluate</em> it?</li>
+</ul></li>
+</ul>
+</section>
+<section id="more-about-context" class="level2" data-number="1.6">
+<h2 data-number="1.6" class="anchored" data-anchor-id="more-about-context"><span class="header-section-number">1.6</span> More about context</h2>
+<ul>
+<li><p>Decision trees are non parametric, data guided predictors, well suited in many situations such as:</p>
+<ul>
+<li>Non-linear relationships.</li>
+<li>High-dimensional data.</li>
+<li>Interaction between variables exist.</li>
+<li>Mixed data types.</li>
+</ul></li>
+<li><p>They are not so appropriate for complex datasets, or complex problems, that require expert knowledge.</p></li>
+<li><p><a href="https://g.co/gemini/share/781b7d88e03a">See here some examples of each situation!</a></p></li>
+</ul>
+</section>
+<section id="types-of-decision-trees" class="level2" data-number="1.7">
+<h2 data-number="1.7" class="anchored" data-anchor-id="types-of-decision-trees"><span class="header-section-number">1.7</span> Types of decision trees</h2>
+<ul>
+<li><p><strong>Classification Trees</strong> are built when the response variable is categorical.</p>
+<ul>
+<li>They aim to <em>classify a new observation</em> based on the values of the predictor variables.</li>
+</ul></li>
+<li><p><strong>Regression Trees</strong> are used when the response variable is numerical.</p>
+<ul>
+<li>They aim to <em>predict the value</em> of a continuous response variable based on the values of the predictor variables.</li>
+</ul></li>
+</ul>
+</section>
+<section id="tree-building-with-r" class="level2 smaller" data-number="1.8">
+<h2 class="smaller anchored" data-number="1.8" data-anchor-id="tree-building-with-r"><span class="header-section-number">1.8</span> Tree building with R</h2>
+<p><br></p>
+<div class="font90">
+<table class="table">
+<thead>
+<tr class="header">
+<th><strong>Package</strong></th>
+<th><strong>Algorithm</strong></th>
+<th><strong>Dataset size</strong></th>
+<th><strong>Missing data handling</strong></th>
+<th><strong>Ensemble methods</strong></th>
+<th><strong>Visual repr</strong></th>
+<th><strong>User interface</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/web/packages/rpart/index.html"><strong><code>rpart</code></strong></a></td>
+<td>RPART</td>
+<td>Medium to large</td>
+<td>Poor</td>
+<td>No</td>
+<td>Yes</td>
+<td>Simple</td>
+</tr>
+<tr class="even">
+<td><a href="https://topepo.github.io/caret/"><strong><code>caret</code></strong></a></td>
+<td>Various</td>
+<td>Various</td>
+<td>Depends on algorithm</td>
+<td>Yes</td>
+<td>Depends on algorithm</td>
+<td>Complex</td>
+</tr>
+<tr class="odd">
+<td><a href="https://cran.r-project.org/web/packages/tree/index.html"><strong><code>tree</code></strong></a></td>
+<td>CART</td>
+<td>Small to medium</td>
+<td>Poor</td>
+<td>No</td>
+<td>Yes</td>
+<td>Simple</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="tree-building-with-python" class="level2" data-number="1.9">
+<h2 data-number="1.9" class="anchored" data-anchor-id="tree-building-with-python"><span class="header-section-number">1.9</span> Tree building with Python</h2>
+<div class="font50">
+<table class="table">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 14%">
+<col style="width: 11%">
+<col style="width: 17%">
+<col style="width: 14%">
+<col style="width: 17%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Package</strong></th>
+<th><strong>Algorithm</strong></th>
+<th><strong>Dataset size</strong></th>
+<th><strong>Missing data handling</strong></th>
+<th><strong>Ensemble methods</strong></th>
+<th><strong>Visual repr</strong></th>
+<th><strong>User interface</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong><code>scikit-learn</code></strong></td>
+<td>CART (DecisionTreeClassifier)</td>
+<td>Small to large</td>
+<td>Can handle NaN</td>
+<td>Yes</td>
+<td>Yes (using Graphviz)</td>
+<td>Simple</td>
+</tr>
+<tr class="even">
+<td><strong><code>dtreeviz</code></strong></td>
+<td>CART (DecisionTree)</td>
+<td>Small to large</td>
+<td>Can handle NaN</td>
+<td>No</td>
+<td>Yes</td>
+<td>Simple</td>
+</tr>
+<tr class="odd">
+<td><strong><code>xgboost</code></strong></td>
+<td>Gradient Boosting</td>
+<td>Medium to large</td>
+<td>Requires imputation</td>
+<td>Yes</td>
+<td>No</td>
+<td>Complex</td>
+</tr>
+<tr class="even">
+<td><strong><code>lightgbm</code></strong></td>
+<td>Gradient Boosting</td>
+<td>Medium to large</td>
+<td>Requires imputation</td>
+<td>Yes</td>
+<td>No</td>
+<td>Complex</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="starting-with-an-example" class="level2" data-number="1.10">
+<h2 data-number="1.10" class="anchored" data-anchor-id="starting-with-an-example"><span class="header-section-number">1.10</span> Starting with an example</h2>
+<ul>
+<li>The Pima Indian Diabetes dataset contains 768 individuals (female) and 9 clinical variables.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"PimaIndiansDiabetes2"</span>, <span class="at">package =</span> <span class="st">"mlbench"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(PimaIndiansDiabetes2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 768
+Columns: 9
+$ pregnant &lt;dbl&gt; 6, 1, 8, 1, 0, 5, 3, 10, 2, 8, 4, 10, 10, 1, 5, 7, 0, 7, 1, 1…
+$ glucose  &lt;dbl&gt; 148, 85, 183, 89, 137, 116, 78, 115, 197, 125, 110, 168, 139,…
+$ pressure &lt;dbl&gt; 72, 66, 64, 66, 40, 74, 50, NA, 70, 96, 92, 74, 80, 60, 72, N…
+$ triceps  &lt;dbl&gt; 35, 29, NA, 23, 35, NA, 32, NA, 45, NA, NA, NA, NA, 23, 19, N…
+$ insulin  &lt;dbl&gt; NA, NA, NA, 94, 168, NA, 88, NA, 543, NA, NA, NA, NA, 846, 17…
+$ mass     &lt;dbl&gt; 33.6, 26.6, 23.3, 28.1, 43.1, 25.6, 31.0, 35.3, 30.5, NA, 37.…
+$ pedigree &lt;dbl&gt; 0.627, 0.351, 0.672, 0.167, 2.288, 0.201, 0.248, 0.134, 0.158…
+$ age      &lt;dbl&gt; 50, 31, 32, 21, 33, 30, 26, 29, 53, 54, 30, 34, 57, 59, 51, 3…
+$ diabetes &lt;fct&gt; pos, neg, pos, neg, pos, neg, pos, neg, pos, pos, neg, pos, n…</code></pre>
+</div>
+</div>
+</section>
+<section id="looking-at-the-data" class="level2" data-number="1.11">
+<h2 data-number="1.11" class="anchored" data-anchor-id="looking-at-the-data"><span class="header-section-number">1.11</span> Looking at the data</h2>
+<ul>
+<li>These Variables are known to be related with cardiovascular diseases.</li>
+<li>It seems intuitive to use these variables to decide if a person is affected by diabetes</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(magrittr)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>descAll <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(skimr<span class="sc">::</span><span class="fu">skim</span>(PimaIndiansDiabetes2))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>desc <span class="ot">&lt;-</span> descAll[,<span class="fu">c</span>(<span class="dv">10</span><span class="sc">:</span><span class="dv">15</span>)]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(desc) <span class="ot">&lt;-</span> descAll<span class="sc">$</span>skim_variable</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(desc) <span class="ot">&lt;-</span> <span class="fu">colnames</span>(desc) <span class="sc">%&gt;%</span> stringr<span class="sc">::</span><span class="fu">str_replace</span>(<span class="st">"numeric."</span>, <span class="st">""</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>desc</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["p0"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["p25"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["p50"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["p75"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["p100"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["hist"],"name":[6],"type":["chr"],"align":["left"]}],"data":[{"1":"NA","2":"NA","3":"NA","4":"NA","5":"NA","6":"NA","_rn_":"diabetes"},{"1":"0.000","2":"1.00000","3":"3.0000","4":"6.00000","5":"17.00","6":"▇▃▂▁▁","_rn_":"pregnant"},{"1":"44.000","2":"99.00000","3":"117.0000","4":"141.00000","5":"199.00","6":"▁▇▇▃▂","_rn_":"glucose"},{"1":"24.000","2":"64.00000","3":"72.0000","4":"80.00000","5":"122.00","6":"▁▃▇▂▁","_rn_":"pressure"},{"1":"7.000","2":"22.00000","3":"29.0000","4":"36.00000","5":"99.00","6":"▆▇▁▁▁","_rn_":"triceps"},{"1":"14.000","2":"76.25000","3":"125.0000","4":"190.00000","5":"846.00","6":"▇▂▁▁▁","_rn_":"insulin"},{"1":"18.200","2":"27.50000","3":"32.3000","4":"36.60000","5":"67.10","6":"▅▇▃▁▁","_rn_":"mass"},{"1":"0.078","2":"0.24375","3":"0.3725","4":"0.62625","5":"2.42","6":"▇▃▁▁▁","_rn_":"pedigree"},{"1":"21.000","2":"24.00000","3":"29.0000","4":"41.00000","5":"81.00","6":"▇▃▁▁▁","_rn_":"age"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+</section>
+<section id="predicting-diabetes-onset" class="level2" data-number="1.12">
+<h2 data-number="1.12" class="anchored" data-anchor-id="predicting-diabetes-onset"><span class="header-section-number">1.12</span> Predicting Diabetes onset</h2>
+<ul>
+<li><p>We wish to predict the probability of individuals in being diabete-positive or negative.</p>
+<ul>
+<li>We start building a tree with all the variables</li>
+</ul></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rpart)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>model1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(diabetes <span class="sc">~</span>., <span class="at">data =</span> PimaIndiansDiabetes2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>A simple visualization illustrates how it proceeds</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model1)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(model1, <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">cex=</span><span class="fl">0.7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="viewing-the-tree-as-text" class="level2" data-number="1.13">
+<h2 data-number="1.13" class="anchored" data-anchor-id="viewing-the-tree-as-text"><span class="header-section-number">1.13</span> Viewing the tree as text</h2>
+<div class="font40">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>n= 768 
+
+node), split, n, loss, yval, (yprob)
+      * denotes terminal node
+
+  1) root 768 268 neg (0.65104167 0.34895833)  
+    2) glucose&lt; 127.5 485  94 neg (0.80618557 0.19381443)  
+      4) age&lt; 28.5 271  23 neg (0.91512915 0.08487085) *
+      5) age&gt;=28.5 214  71 neg (0.66822430 0.33177570)  
+       10) insulin&lt; 142.5 164  48 neg (0.70731707 0.29268293)  
+         20) glucose&lt; 96.5 51   4 neg (0.92156863 0.07843137) *
+         21) glucose&gt;=96.5 113  44 neg (0.61061947 0.38938053)  
+           42) mass&lt; 26.35 19   0 neg (1.00000000 0.00000000) *
+           43) mass&gt;=26.35 94  44 neg (0.53191489 0.46808511)  
+             86) pregnant&lt; 5.5 49  15 neg (0.69387755 0.30612245)  
+              172) age&lt; 34.5 25   2 neg (0.92000000 0.08000000) *
+              173) age&gt;=34.5 24  11 pos (0.45833333 0.54166667)  
+                346) pressure&gt;=77 10   2 neg (0.80000000 0.20000000) *
+                347) pressure&lt; 77 14   3 pos (0.21428571 0.78571429) *
+             87) pregnant&gt;=5.5 45  16 pos (0.35555556 0.64444444) *
+       11) insulin&gt;=142.5 50  23 neg (0.54000000 0.46000000)  
+         22) age&gt;=56.5 12   1 neg (0.91666667 0.08333333) *
+         23) age&lt; 56.5 38  16 pos (0.42105263 0.57894737)  
+           46) age&gt;=33.5 29  14 neg (0.51724138 0.48275862)  
+             92) triceps&gt;=27 22   8 neg (0.63636364 0.36363636) *
+             93) triceps&lt; 27 7   1 pos (0.14285714 0.85714286) *
+           47) age&lt; 33.5 9   1 pos (0.11111111 0.88888889) *
+    3) glucose&gt;=127.5 283 109 pos (0.38515901 0.61484099)  
+      6) mass&lt; 29.95 75  24 neg (0.68000000 0.32000000) *
+      7) mass&gt;=29.95 208  58 pos (0.27884615 0.72115385)  
+       14) glucose&lt; 157.5 116  46 pos (0.39655172 0.60344828)  
+         28) age&lt; 30.5 50  23 neg (0.54000000 0.46000000)  
+           56) pressure&gt;=73 29  10 neg (0.65517241 0.34482759)  
+            112) mass&lt; 41.8 20   4 neg (0.80000000 0.20000000) *
+            113) mass&gt;=41.8 9   3 pos (0.33333333 0.66666667) *
+           57) pressure&lt; 73 21   8 pos (0.38095238 0.61904762) *
+         29) age&gt;=30.5 66  19 pos (0.28787879 0.71212121) *
+       15) glucose&gt;=157.5 92  12 pos (0.13043478 0.86956522) *</code></pre>
+</div>
+</div>
+</div>
+<div class="small">
+<ul>
+<li>This representation shows the variables and split values that have been selected by the algorithm.</li>
+<li>It can be used to classify (new) individuals following the decisions (splits) from top to bottom.</li>
+</ul>
+</div>
+</section>
+<section id="plotting-the-tree-1" class="level2" data-number="1.14">
+<h2 data-number="1.14" class="anchored" data-anchor-id="plotting-the-tree-1"><span class="header-section-number">1.14</span> Plotting the tree (1)</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(model1)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(model1, <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">cex=</span><span class="fl">0.7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="1.1-DecisionTrees-Slides_files/figure-html/unnamed-chunk-7-1.png" style="height:10cm" width="576" class="figure-img"></p>
+<figcaption>Even without domain expertise the model seems <em>reasonable</em></figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="plotting-the-tree-nicer" class="level2" data-number="1.15">
+<h2 data-number="1.15" class="anchored" data-anchor-id="plotting-the-tree-nicer"><span class="header-section-number">1.15</span> Plotting the tree (Nicer)</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(rpart.plot)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rpart.plot</span>(model1, <span class="at">cex=</span>.<span class="dv">7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="1.1-DecisionTrees-Slides_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="576"></p>
+<figcaption>The tree plotted with the <code>rpart.plot</code> package.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="small">
+<p>Each node shows: (1) the predicted class (‘neg’ or ‘pos’), (2) the predicted probability, (3) the percentage of observations in the node.</p>
+</div>
+</section>
+<section id="individual-prediction" class="level2" data-number="1.16">
+<h2 data-number="1.16" class="anchored" data-anchor-id="individual-prediction"><span class="header-section-number">1.16</span> Individual prediction</h2>
+<p>Consider individuals 521 and 562</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>(aSample<span class="ot">&lt;-</span> PimaIndiansDiabetes2[<span class="fu">c</span>(<span class="dv">521</span>,<span class="dv">562</span>),])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["pregnant"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["glucose"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["pressure"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["triceps"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["insulin"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["mass"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["pedigree"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["age"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["diabetes"],"name":[9],"type":["fct"],"align":["left"]}],"data":[{"1":"2","2":"68","3":"70","4":"32","5":"66","6":"25.0","7":"0.187","8":"25","9":"neg","_rn_":"521"},{"1":"0","2":"198","3":"66","4":"32","5":"274","6":"41.3","7":"0.502","8":"28","9":"pos","_rn_":"562"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(model1, aSample, <span class="st">"class"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>521 562 
+neg pos 
+Levels: neg pos</code></pre>
+</div>
+</div>
+<ul>
+<li><p>If we follow individuals 521 and 562 along the tree, we reach the same prediction.</p></li>
+<li><p>The tree provides not only a classification but also an explanation.</p></li>
+</ul>
+</section>
+<section id="how-accurate-is-the-model" class="level2" data-number="1.17">
+<h2 data-number="1.17" class="anchored" data-anchor-id="how-accurate-is-the-model"><span class="header-section-number">1.17</span> How accurate is the model?</h2>
+<ul>
+<li>It is straightforward to obtain a simple performance measure.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>predicted.classes<span class="ot">&lt;-</span> <span class="fu">predict</span>(model1, PimaIndiansDiabetes2, <span class="st">"class"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(predicted.classes <span class="sc">==</span> PimaIndiansDiabetes2<span class="sc">$</span>diabetes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8294271</code></pre>
+</div>
+</div>
+<ul>
+<li><p>The question becomes harder when we go back and ask if <em>we obtained the best possible tree</em>.</p></li>
+<li><p>In order to answer this question we must study tree construction in more detail.</p></li>
+</ul>
+<!-- ## Always use train/test sets! -->
+<!-- -   A better strategy is to use train dataset to build the model and a test dataset to check how it works. -->
+<!-- ```{r echo=TRUE} -->
+<!-- set.seed(123) -->
+<!-- ssize <- nrow(PimaIndiansDiabetes2) -->
+<!-- propTrain <- 0.8 -->
+<!-- training.indices <-sample(1:ssize, floor(ssize*propTrain)) -->
+<!-- train.data  <- PimaIndiansDiabetes2[training.indices, ] -->
+<!-- test.data <- PimaIndiansDiabetes2[-training.indices, ] -->
+<!-- ``` -->
+<!-- ## Build on train, Estimate on test -->
+<!-- -   First, build the model on the train data  -->
+<!-- ```{r echo=TRUE} -->
+<!-- model2 <- rpart(diabetes ~., data = train.data) -->
+<!-- ``` -->
+<!-- - Then check its accuracy on the test data. -->
+<!-- ```{r echo=TRUE} -->
+<!-- predicted.classes.test<- predict(model2, test.data, "class") -->
+<!-- mean(predicted.classes.test == test.data$diabetes) -->
+<!-- ``` -->
+</section>
+</section>
+<section id="building-classification-trees" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Building Classification Trees</h1>
+<section id="building-the-trees" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="building-the-trees"><span class="header-section-number">2.1</span> Building the trees</h2>
+<ul>
+<li><p>As with any model, we aim not only at construting trees.</p></li>
+<li><p>We wish to build good trees and, if possible, optimal trees in some sense we decide.</p></li>
+<li><p>In order to <strong>build good trees</strong> we must decide</p>
+<ul>
+<li><p>How to <em>construct</em> a tree?</p></li>
+<li><p>How to <em>optimize</em> the tree?</p></li>
+<li><p>How to <em>evaluate</em> it?</p></li>
+</ul></li>
+</ul>
+<!-- -   Building the tree requires deciding: -->
+<!--     -   how to partition ("split") the space, -->
+<!--     -   Which *impurity* measures to use, -->
+<!--     -   When to stop splitting -->
+<!-- -   Evaluation is similar to other classifiers. -->
+<!-- -   Optimization involves deciding: -->
+<!--     -   How to *prune* the tree, -->
+<!--     -   Which features are most important. -->
+<!-- ## Some notation first -->
+<!-- -   $\mathbb X$: Space of variables, or *feature space* -->
+<!--     -   Usually $\mathbb{X} \subseteq \mathbb{R}^p$ -->
+<!--     -   But it can contain numerical/categorical variables. -->
+<!-- -   $X\in \mathbb{X}$: Input vector: $X_1, X_2, ..., X_p$. -->
+<!-- -   Tree-structured classifiers are constructed by repeated splits of the space X into smaller and smaller subsets, beginning with X itself. -->
+<!--     -   That is by *recursive splitting* -->
+</section>
+<section id="trees-are-supervised-learners" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="trees-are-supervised-learners"><span class="header-section-number">2.2</span> TREES ARE SUPERVISED LEARNERS</h2>
+<ul>
+<li><p>Classification / Regression: <em>Supervised Learning</em> tasks:</p></li>
+<li><p>There is a <em>learning set</em> <span class="math inline">\(\mathcal{L}=\{(\mathbf{X_i,Y_i})\}_{i=1}^n\)</span></p></li>
+<li><p>And depending of <span class="math inline">\(\mathbf{Y}\)</span> we have:</p>
+<ul>
+<li>Classification: <span class="math inline">\(\mathbf{X}\in\mathbb{R}^d,\quad Y\in\{-1,+1\}\)</span></li>
+<li>Regression <span class="math inline">\(\mathbf{X}\in\mathbb{R}^d,\quad Y\in\mathbb{R}\)</span>.</li>
+</ul></li>
+</ul>
+</section>
+<section id="trees-and-decision-trees" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="trees-and-decision-trees"><span class="header-section-number">2.3</span> TREES AND DECISION TREES</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="font80">
+<ol type="1">
+<li>A tree is a set of nodes and edges organized in a hierarchical fashion.<br> In contrast to a graph, in a tree there are no loops. <!-- Internal nodes are denoted with circles and terminal nodes with squares. --></li>
+</ol>
+<p><br></p>
+<ol start="2" type="1">
+<li>A decision tree is a tree where <em>each split node stores a boolean test function</em> to be applied to the incoming data. <br> Each leaf stores the final answer (predictor)</li>
+</ol>
+</div>
+</div><div class="column" style="width:50%;">
+<p><img src="Assets/1.1-DecisionTrees-Slides_insertimage_1.png" class="img-fluid" alt="Plot title."> <img src="Assets/1.1-DecisionTrees-Slides_insertimage_2.png" class="img-fluid" alt="Plot title."></p>
+</div>
+</div>
+</section>
+<section id="additional-notation" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="additional-notation"><span class="header-section-number">2.4</span> Additional notation</h2>
+<ul>
+<li><p>A node is denoted by <span class="math inline">\(t\)</span>.</p>
+<ul>
+<li>The left and right child nodes are denoted by <span class="math inline">\(t_{L}\)</span> and <span class="math inline">\(t_{R}\)</span> respectively.</li>
+</ul></li>
+<li><p>The collection of all nodes in the tree is denoted <span class="math inline">\(T\)</span></p></li>
+<li><p>The collection of all the leaf nodes is denoted <span class="math inline">\(\tilde{T}\)</span></p></li>
+<li><p>A split will be denoted by <span class="math inline">\(s\)</span>.</p>
+<ul>
+<li>The set of all splits is denoted by <span class="math inline">\(S\)</span>.</li>
+</ul></li>
+</ul>
+<!-- ## Summary of terminology -->
+</section>
+<section id="building-a-tree" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="building-a-tree"><span class="header-section-number">2.5</span> Building a tree</h2>
+<ul>
+<li><p>A binary decision tree is built by defining a series of (recursive) splits on the feature space.</p></li>
+<li><p>The splits are decided in such a way that the associated learning task is attained</p>
+<ul>
+<li>by setting thresholds on the variables values,</li>
+<li>that induce paths in the tree,</li>
+</ul></li>
+<li><p>The ultimate goal of the tree is to be able to use a combination of the splits to accomplish the learning task with as small an error as possible.</p></li>
+</ul>
+</section>
+<section id="trees-partition-the-space" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="trees-partition-the-space"><span class="header-section-number">2.6</span> Trees partition the space</h2>
+<ul>
+<li><p><em>A tree represents a recursive splitting of the space</em>.</p>
+<ul>
+<li>Every node of interest corresponds to one region in the original space.</li>
+<li>Two child nodes occupy two different regions.</li>
+<li>Together, yield same region as that of the parent node.</li>
+</ul></li>
+<li><p>In the end, every leaf node is assigned with a class and a test point is assigned with the class of the leaf node it lands in.</p></li>
+</ul>
+</section>
+<section id="the-tree-represents-the-splitting" class="level2" data-number="2.7">
+<h2 data-number="2.7" class="anchored" data-anchor-id="the-tree-represents-the-splitting"><span class="header-section-number">2.7</span> The tree represents the splitting</h2>
+<div class="r-stack">
+<div class="fragment fade-in absolute" data-top="100" data-left="150">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/splits_nodes_1.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Assets/splits_nodes_1.png" class="quarto-figure quarto-figure-center figure-img" width="800" height="400"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div class="fragment fade-in absolute" data-top="100" data-left="150">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/splits_nodes_2.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Assets/splits_nodes_2.png" class="quarto-figure quarto-figure-center figure-img" width="800" height="400"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div class="fragment fade-in absolute" data-top="100" data-left="150">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/splits_nodes_3.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Assets/splits_nodes_3.png" class="quarto-figure quarto-figure-center figure-img" width="800" height="400"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- -   [Animation](https://youtu.be/1ow2tF9Ezgs) -->
+</section>
+<section id="different-splits-are-possible" class="level2" data-number="2.8">
+<h2 data-number="2.8" class="anchored" data-anchor-id="different-splits-are-possible"><span class="header-section-number">2.8</span> Different splits are possible</h2>
+<ul>
+<li>It is always possible to split a space in distinct ways</li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/1.1-DecisionTrees-Slides_insertimage_3.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Assets/1.1-DecisionTrees-Slides_insertimage_3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="400"></p>
+</figure>
+</div>
+</div>
+</div>
+<ul>
+<li><p>Some ways perform better than other for a given task, but rarely will they be perfect.</p></li>
+<li><p>So we aim at combining splits to find a better rule.</p></li>
+</ul>
+</section>
+<section id="construction-of-a-tree" class="level2" data-number="2.9">
+<h2 data-number="2.9" class="anchored" data-anchor-id="construction-of-a-tree"><span class="header-section-number">2.9</span> Construction of a tree</h2>
+<p>Tree building involves the following three elements:</p>
+<ol type="1">
+<li><p>The selection of the splits, i.e., how do we decide which node (region) to split and how to split it?</p>
+<ul>
+<li>How to select from the pool of candidate splits?</li>
+<li>What are appropriate <em>goodness of split</em> criteria?</li>
+</ul></li>
+<li><p>If we know how to make splits (‘grow’ the tree), how do we decide when to declare a node terminal and <em>stop splitting</em>?</p></li>
+<li><p>How do we assign each terminal node to a class?</p></li>
+</ol>
+</section>
+<section id="tb-1.1---split-selection" class="level2" data-number="2.10">
+<h2 data-number="2.10" class="anchored" data-anchor-id="tb-1.1---split-selection"><span class="header-section-number">2.10</span> TB 1.1 - Split selection</h2>
+<ul>
+<li><p>To build a Tree, questions have to be generated that induce splits based on the value of a single variable.</p></li>
+<li><p>Ordered variable <span class="math inline">\(X_j\)</span>:</p>
+<ul>
+<li>Is <span class="math inline">\(X_j \leq c\)</span>? for all possible thresholds <span class="math inline">\(c\)</span>.</li>
+<li>Split lines: parallel to the coordinates.</li>
+</ul></li>
+<li><p>Categorical variables, <span class="math inline">\(X_j \in \{1, 2, \ldots, M\}\)</span>:</p>
+<ul>
+<li>Is <span class="math inline">\(X_j \in A\)</span>?, where <span class="math inline">\(A \subseteq M\)</span> .</li>
+</ul></li>
+<li><p>The pool of candidate splits for all <span class="math inline">\(p\)</span> variables is formed by combining all the generated questions.</p></li>
+</ul>
+<!-- - Once we have the pool of candidate splits, the next step is to decide which one to use when constructing the decision tree. -->
+</section>
+<section id="tb-1.21---goodness-of-split" class="level2" data-number="2.11">
+<h2 data-number="2.11" class="anchored" data-anchor-id="tb-1.21---goodness-of-split"><span class="header-section-number">2.11</span> TB 1.21 - Goodness of Split</h2>
+<ul>
+<li><p>The way we choose the split, is <em>to measure every split by a ‘goodness of split’ measure</em>, which depends on:</p>
+<ul>
+<li>the split question as well as</li>
+<li>the node to split.</li>
+</ul></li>
+<li><p>Goodness of split is measured by <em>impurity functions</em>.</p></li>
+<li><p>Intuitively, when we split the points we want the region corresponding to each leaf node to be “pure”, that is, most points in this region come from the same class, that is, one class dominates.</p></li>
+</ul>
+</section>
+<section id="tb-1.2.2---good-splits-vs-bad-splits" class="level2" data-number="2.12">
+<h2 data-number="2.12" class="anchored" data-anchor-id="tb-1.2.2---good-splits-vs-bad-splits"><span class="header-section-number">2.12</span> TB 1.2.2 - Good splits vs bad splits</h2>
+<div class="columns">
+<div class="fragment">
+<div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/BadSplit.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Assets/BadSplit.png" class="img-fluid figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><em>Purity</em> not increased</p>
+</div>
+</div><div class="fragment">
+<div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/GoodSplit.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Assets/GoodSplit.png" class="img-fluid figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><em>Purity</em> increased</p>
+</div>
+</div>
+</div>
+</section>
+<section id="tb-1.2.3---measuring-homogeneity" class="level2" data-number="2.13">
+<h2 data-number="2.13" class="anchored" data-anchor-id="tb-1.2.3---measuring-homogeneity"><span class="header-section-number">2.13</span> TB 1.2.3 - Measuring homogeneity</h2>
+<ul>
+<li><p>In order to measure homogeneity,or as called here, <em>purity</em>, of splits we introduce</p>
+<ul>
+<li>Impurity functions</li>
+<li>Impurity measures</li>
+</ul></li>
+<li><p>Used to measure the extent of <em>purity</em> for a region containing data points from possibly different classes.</p></li>
+</ul>
+</section>
+<section id="tb-1.2.4---impurity-functions" class="level2" data-number="2.14">
+<h2 data-number="2.14" class="anchored" data-anchor-id="tb-1.2.4---impurity-functions"><span class="header-section-number">2.14</span> TB 1.2.4 - Impurity functions</h2>
+<div class="font80">
+<p>An <strong>impurity function</strong> is a function <span class="math inline">\(\Phi\)</span> defined on the set of all <span class="math inline">\(K\)</span>-tuples of numbers <span class="math inline">\(\mathbf{p}= \left(p_{1}, \cdots, p_{K}\right)\)</span> s.t. <span class="math inline">\(p_{j} \geq 0, \,  \sum_{j=1}^K p_{j}=1\)</span>, <span class="math display">\[
+\Phi: \left(p_{1}, \cdots, p_{K}\right) \rightarrow [0,1]
+\]</span></p>
+<p>with the properties:</p>
+<ol type="1">
+<li><span class="math inline">\(\Phi\)</span> achieves maximum only for the uniform distribution, that is all the <span class="math inline">\(p_{j}\)</span> are equal.</li>
+<li><span class="math inline">\(\Phi\)</span> achieves minimum only at the points <span class="math inline">\((1,0, \ldots, 0)\)</span>,<span class="math inline">\((0,1,0, \ldots, 0)\)</span>, <span class="math inline">\(\ldots,(0,0, \ldots, 0,1)\)</span>, i.e., when the probability of being in a certain class is 1 and 0 for all the other classes.</li>
+<li><span class="math inline">\(\Phi\)</span> is a symmetric function of <span class="math inline">\(p_{1}, \cdots, p_{K}\)</span>, i.e., if we permute <span class="math inline">\(p_{j}\)</span>, <span class="math inline">\(\Phi\)</span> remains constant.</li>
+</ol>
+</div>
+</section>
+<section id="tb-1.2.5---some-impurity-functions" class="level2" data-number="2.15">
+<h2 data-number="2.15" class="anchored" data-anchor-id="tb-1.2.5---some-impurity-functions"><span class="header-section-number">2.15</span> TB 1.2.5 - Some Impurity Functions</h2>
+<ul>
+<li>The functions below are commonly used to measure impurity.</li>
+</ul>
+<!-- - Let $t$ be a node and $p(k|t)$ the conditional probability of observing class $k$ at that node. The node information function $i(t)$ may be defined as: -->
+<div class="font80">
+<ul>
+<li><p><span class="math inline">\(\Phi_E (\mathbf{p}) = -\sum_{j=1}^K p_j\log (p_j)\)</span> (<strong>Entropy</strong>).</p></li>
+<li><p><span class="math inline">\(\Phi_G (\mathbf{p}) = 1-\sum_{j=1}^K p_j^2\)</span>. (<strong>Gini Index</strong>).</p></li>
+<li><p><span class="math inline">\(\Phi_M (\mathbf{p}) = \sum_{i=1}^K p_j(1-p_j)\)</span> (<strong>Misclassification rate</strong>).</p></li>
+</ul>
+</div>
+<ul>
+<li>In practice, for classification trees only the first two are recommended.</li>
+</ul>
+</section>
+<section id="tb-1.2.5-impurity-functions-behavior" class="level2" data-number="2.16">
+<h2 data-number="2.16" class="anchored" data-anchor-id="tb-1.2.5-impurity-functions-behavior"><span class="header-section-number">2.16</span> TB 1.2.5 Impurity functions behavior</h2>
+<center>
+<img src="Assets/impurity.jpg" class="img-fluid" style="width:65.0%">
+</center>
+<div class="tiny">
+<p>Node impurity functions for the two-class case. - The entropy function (rescaled) is the red curve, the Gini index is the green curve, and the resubstitution estimate of the misclassification rate is the blue curve.</p>
+</div>
+</section>
+<section id="tb-1.2.6---impurity-for-a-split" class="level2" data-number="2.17">
+<h2 data-number="2.17" class="anchored" data-anchor-id="tb-1.2.6---impurity-for-a-split"><span class="header-section-number">2.17</span> TB 1.2.6 - Impurity for a split</h2>
+<ul>
+<li>Given an impurity function <span class="math inline">\(\Phi\)</span>, a node <span class="math inline">\(t\)</span>, and given <span class="math inline">\(p(j \mid t)\)</span>, the estimated posterior probability of class <span class="math inline">\(j\)</span> given node <span class="math inline">\(t\)</span>, the <em>impurity measure of <span class="math inline">\(t\)</span></em>, <span class="math inline">\(i(t)\)</span>, is defined as:</li>
+</ul>
+<p><span class="math display">\[
+i(t)=\phi(p(1 \mid t), p(2 \mid t), \ldots, p(K \mid t))
+\]</span> - That is, the <em>impurity measure</em> of a split (or a node) is the impurity function when computed on probabilities associated (conditional) with a node.</p>
+</section>
+<section id="tb-1.2.7---goodness-of-a-split" class="level2" data-number="2.18">
+<h2 data-number="2.18" class="anchored" data-anchor-id="tb-1.2.7---goodness-of-a-split"><span class="header-section-number">2.18</span> TB 1.2.7 - Goodness of a split</h2>
+<ul>
+<li>Once we have defined <span class="math inline">\(i(t)\)</span>, we define the goodness of split <span class="math inline">\(s\)</span> for node <span class="math inline">\(t\)</span>, denoted by <span class="math inline">\(\Phi(s, t)\)</span> :</li>
+</ul>
+<p><span class="math display">\[
+\Phi(s, t)=\Delta i(s, t)=i(t)-p_{R} i\left(t_{R}\right)-p_{L} i\left(t_{L}\right)
+\]</span></p>
+<ul>
+<li>The best split for the single variable <span class="math inline">\(X_{j}\)</span> is the one that has the largest value of <span class="math inline">\(\Phi(s, t)\)</span> over all <span class="math inline">\(s \in \mathcal{S}_{j}\)</span>, the set of possible distinct splits for <span class="math inline">\(X_{j}\)</span>.</li>
+</ul>
+</section>
+<section id="tb-1.2.8---impurity-score-for-a-node" class="level2" data-number="2.19">
+<h2 data-number="2.19" class="anchored" data-anchor-id="tb-1.2.8---impurity-score-for-a-node"><span class="header-section-number">2.19</span> TB 1.2.8 - Impurity score for a node</h2>
+<ul>
+<li><p>The impurity, <span class="math inline">\(i(t)\)</span>, of a node is based solely on the estimated posterior probabilities of the classes</p>
+<ul>
+<li>That is, <em>it doesn’t account for the size of <span class="math inline">\(t\)</span></em>.</li>
+</ul></li>
+<li><p>This is done by the <em>impurity score</em> of <span class="math inline">\(t\)</span>, defined as <span class="math inline">\(I(t)=i(t)\cdot p(t)\)</span>, a <em>weighted impurity measure</em> of node <span class="math inline">\(t\)</span> that takes into account:</p>
+<ul>
+<li><p>The estimated posterior probabilities of the classes,</p></li>
+<li><p>The estimated proportion of data that go to node <span class="math inline">\(t\)</span>.</p></li>
+</ul></li>
+</ul>
+</section>
+<section id="tb-1.2.9---applications-of-it" class="level2" data-number="2.20">
+<h2 data-number="2.20" class="anchored" data-anchor-id="tb-1.2.9---applications-of-it"><span class="header-section-number">2.20</span> TB 1.2.9 - Applications of <span class="math inline">\(I(t)\)</span></h2>
+<ul>
+<li><span class="math inline">\(I(t)\)</span> can be used to:
+<ul>
+<li>Define the aggregated impurity of a tree, by adding the impurity scores of all terminal leaves.</li>
+<li>Provide a weighted measure of impurity decrease for a split: <span class="math inline">\(\Delta I(s, t)=p(t) \Delta i(s, t)\)</span>.</li>
+<li>Define a criteria for stop splitting a tree (see below).</li>
+</ul></li>
+</ul>
+</section>
+<section id="tb-1.2.10---entropy-as-an-impurity-measure" class="level2" data-number="2.21">
+<h2 data-number="2.21" class="anchored" data-anchor-id="tb-1.2.10---entropy-as-an-impurity-measure"><span class="header-section-number">2.21</span> TB 1.2.10 - Entropy as an impurity measure</h2>
+<ul>
+<li>The entropy of a node, <span class="math inline">\(t\)</span>, that is split in <span class="math inline">\(n\)</span> child nodes <span class="math inline">\(t_1\)</span>, <span class="math inline">\(t_2\)</span>, …, <span class="math inline">\(t_n\)</span>, is:</li>
+</ul>
+<p><span class="math display">\[
+H(t)=-\sum_{i=1}^{n} P\left(t_{i}\right) \log _{2} P\left(t_{i}\right)
+\]</span></p>
+</section>
+<section id="tb-1.2.11---goodness-of-split-based-on-entropy" class="level2" data-number="2.22">
+<h2 data-number="2.22" class="anchored" data-anchor-id="tb-1.2.11---goodness-of-split-based-on-entropy"><span class="header-section-number">2.22</span> TB 1.2.11 - Goodness of split based on entropy</h2>
+<ul>
+<li><p>From here, an information gain (that is impurity decrease) measure can be introduced.</p></li>
+<li><p>Information theoretic approach that compares</p>
+<ul>
+<li>the entropy of the parent node before the split to</li>
+<li>that of a weighted sum of the child nodes after the split where the weights are proportional to the number of observations in each node.</li>
+</ul></li>
+</ul>
+</section>
+<section id="tb-1.2.12---information-gain" class="level2" data-number="2.23">
+<h2 data-number="2.23" class="anchored" data-anchor-id="tb-1.2.12---information-gain"><span class="header-section-number">2.23</span> TB 1.2.12 - Information gain</h2>
+<ul>
+<li>For a split <span class="math inline">\(s\)</span> and a set of observations (a node) <span class="math inline">\(t\)</span>, information gain is defined as:</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; IG(t, s)=\text { (original entr.) }-(\text { entr. after split) } \\
+&amp; IG(t, s)=H(t)-\sum_{i=1}^{n} \frac{\left|t_{i}\right|}{t} H\left(x_{i}\right)
+\end{aligned}
+\]</span></p>
+</section>
+<section id="example" class="level2 smaller" data-number="2.24">
+<h2 class="smaller anchored" data-number="2.24" data-anchor-id="example"><span class="header-section-number">2.24</span> Example</h2>
+<div class="columns">
+<div class="column" style="width:40%;">
+<p>Consider the problem of designing an algorithm to automatically differentiate between apples and pears (class labels) given only their width and height measurements (features).</p>
+</div><div class="column" style="width:60%;">
+<div class="font80">
+<table class="table">
+<thead>
+<tr class="header">
+<th><strong>Width</strong></th>
+<th><strong>Height</strong></th>
+<th><strong>Fruit</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>7.1</td>
+<td>7.3</td>
+<td>Apple</td>
+</tr>
+<tr class="even">
+<td>7.9</td>
+<td>7.5</td>
+<td>Apple</td>
+</tr>
+<tr class="odd">
+<td>7.4</td>
+<td>7.0</td>
+<td>Apple</td>
+</tr>
+<tr class="even">
+<td>8.2</td>
+<td>7.3</td>
+<td>Apple</td>
+</tr>
+<tr class="odd">
+<td>7.6</td>
+<td>6.9</td>
+<td>Apple</td>
+</tr>
+<tr class="even">
+<td>7.8</td>
+<td>8.0</td>
+<td>Apple</td>
+</tr>
+<tr class="odd">
+<td>7.0</td>
+<td>7.5</td>
+<td>Pear</td>
+</tr>
+<tr class="even">
+<td>7.1</td>
+<td>7.9</td>
+<td>Pear</td>
+</tr>
+<tr class="odd">
+<td>6.8</td>
+<td>8.0</td>
+<td>Pear</td>
+</tr>
+<tr class="even">
+<td>6.6</td>
+<td>7.7</td>
+<td>Pear</td>
+</tr>
+<tr class="odd">
+<td>7.3</td>
+<td>8.2</td>
+<td>Pear</td>
+</tr>
+<tr class="even">
+<td>7.2</td>
+<td>7.9</td>
+<td>Pear</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="example.-entropy-calculation" class="level2" data-number="2.25">
+<h2 data-number="2.25" class="anchored" data-anchor-id="example.-entropy-calculation"><span class="header-section-number">2.25</span> Example. Entropy Calculation</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/Example2-EntropyCalculation.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Assets/Example2-EntropyCalculation.png" class="img-fluid figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="example.-information-gain" class="level2" data-number="2.26">
+<h2 data-number="2.26" class="anchored" data-anchor-id="example.-information-gain"><span class="header-section-number">2.26</span> Example. Information Gain</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/Example2-IGCalculation.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Assets/Example2-IGCalculation.png" class="img-fluid figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="prediction-with-trees" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Prediction with Trees</h1>
+<section id="tb-2---class-assignment" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="tb-2---class-assignment"><span class="header-section-number">3.1</span> TB 2 - Class Assignment</h2>
+<ul>
+<li><p>The decision tree classifies new data points as follows.</p>
+<ul>
+<li><p>We let a data point pass down the tree and see which leaf node it lands in.</p></li>
+<li><p>The class of the leaf node is assigned to the new data point. Basically, all the points that land in the same leaf node will be given the same class.</p></li>
+<li><p>This is similar to k-means or any prototype method.</p></li>
+</ul></li>
+</ul>
+</section>
+<section id="tb-2.1---class-assignment-rules" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="tb-2.1---class-assignment-rules"><span class="header-section-number">3.2</span> TB 2.1 - Class Assignment Rules</h2>
+<ul>
+<li>A class assignment rule assigns a class <span class="math inline">\(j=1, \cdots, K\)</span> to every terminal (leaf) node <span class="math inline">\(t \in \tilde{T}\)</span>.</li>
+<li>The class is assigned to node <span class="math inline">\(t\)</span> is denoted by <span class="math inline">\(\kappa(t)\)</span>,
+<ul>
+<li>E.g., if <span class="math inline">\(\kappa(t)=2\)</span>, all the points in node <span class="math inline">\(t\)</span> would be assigned to class 2.</li>
+</ul></li>
+<li>If we use 0-1 loss, the class assignment rule picks the class with maximum posterior probability:</li>
+</ul>
+<p><span class="math display">\[
+\kappa(t)=\arg \max _{j} p(j \mid t)
+\]</span></p>
+</section>
+<section id="tb-2.2.-estimating-the-error-rate-1" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="tb-2.2.-estimating-the-error-rate-1"><span class="header-section-number">3.3</span> TB 2.2. Estimating the error rate (1)</h2>
+<ul>
+<li><p>Let’s assume we have built a tree and have the classes assigned for the leaf nodes.</p></li>
+<li><p>Goal: estimate <em>the classification error rate</em> for this tree.</p></li>
+<li><p>We use the <em>resubstitution estimate <span class="math inline">\(r(t)\)</span> for the probability of misclassification, given that a case falls into node <span class="math inline">\(t\)</span></em>. This is:</p></li>
+</ul>
+<p><span class="math display">\[
+r(t)=1-\max _{j} p(j \mid t)=1-p(\kappa(t) \mid t)
+\]</span></p>
+</section>
+<section id="tb-2.3.-estimating-the-error-rate-2" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="tb-2.3.-estimating-the-error-rate-2"><span class="header-section-number">3.4</span> TB 2.3. Estimating the error rate (2)</h2>
+<ul>
+<li><p>Denote <span class="math inline">\(R(t)=r(t) p(t)\)</span>, that is the miscclassification error rate weighted by the probability of the node.</p></li>
+<li><p>The resubstitution estimation for the overall misclassification rate <span class="math inline">\(R(T)\)</span> of the tree classifier <span class="math inline">\(T\)</span> is:</p></li>
+</ul>
+<p><span class="math display">\[
+R(T)=\sum_{t \in \tilde{T}} R(t)
+\]</span></p>
+</section>
+</section>
+<section id="obtaining-best-trees" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Obtaining best trees</h1>
+<section id="tb.-3.1---when-to-stop-growing" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="tb.-3.1---when-to-stop-growing"><span class="header-section-number">4.1</span> TB. 3.1 - When to stop growing</h2>
+<ul>
+<li><p>Maximizing information gain is one possible criteria to choose among splits.</p></li>
+<li><p>In order to avoid excessive complexity it is usually decided to stop splitting when <em>information gain does not compensate for increase in complexity</em>.</p></li>
+</ul>
+</section>
+<section id="tb-3.2-stop-splitting-criteria" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="tb-3.2-stop-splitting-criteria"><span class="header-section-number">4.2</span> TB 3.2 Stop splitting criteria</h2>
+<ul>
+<li>In practice, stop splitting is decided when: <span class="math display">\[
+\max _{s \in S} \Delta I(s, t)&lt;\beta,
+\]</span>where:
+<ul>
+<li><span class="math inline">\(\Delta I\)</span> represents the information gain associated with an optimal split <span class="math inline">\(s\)</span> and a node <span class="math inline">\(t\)</span>,</li>
+<li>and <span class="math inline">\(\beta\)</span> is a pre-determined threshold.</li>
+</ul></li>
+</ul>
+</section>
+<section id="tb-3.3-optimizing-the-tree" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="tb-3.3-optimizing-the-tree"><span class="header-section-number">4.3</span> TB 3.3 Optimizing the Tree</h2>
+<ul>
+<li><p>Trees obtained by looking for optimal splits tend to overfit: good for the data in the tree, but generalize badly and tend to fail more in predictions.</p></li>
+<li><p>In order to reduce complexity and overfitting,<br> while keeping the tree as good as possible, tree <em>pruning</em> may be applied.</p></li>
+<li><p>Pruning works <em>removing branches that are unlikely to improve the accuracy</em> of the model on new data.</p></li>
+</ul>
+</section>
+<section id="tb-3.4-pruning-methods" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="tb-3.4-pruning-methods"><span class="header-section-number">4.4</span> TB 3.4 Pruning methods</h2>
+<ul>
+<li>There are different pruning methods, but the most common one is the <em>cost-complexity</em> pruning algorithm, also known as the <em>weakest link pruning</em>.</li>
+<li>The algorithm works by adding a penalty term to the misclassification rate of the terminal nodes:</li>
+</ul>
+<p><span class="math display">\[
+R_\alpha(T) =R(T)+\alpha|T|
+\]</span> where <span class="math inline">\(\alpha\)</span> is the parameter that controls the trade-off between tree complexity and accuracy.</p>
+</section>
+<section id="tb-3.5-cost-complexity-pruning" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="tb-3.5-cost-complexity-pruning"><span class="header-section-number">4.5</span> TB 3.5 Cost complexity pruning</h2>
+<ul>
+<li><p>Start by building a large tree that overfits the data.</p></li>
+<li><p>Then, use cross-validation to estimate the optimal value of alpha that minimizes the generalization error.</p></li>
+<li><p>Finally, prune the tree by removing the branches that have a smaller improvement in impurity than the penalty term multiplied by alpha.</p></li>
+<li><p>Iterate the process until no more branches can be pruned, or until a minimum tree size is reached.</p></li>
+</ul>
+</section>
+</section>
+<section id="regression-trees" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Regression Trees</h1>
+<section id="regression-modelling-with-trees" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="regression-modelling-with-trees"><span class="header-section-number">5.1</span> Regression modelling with trees</h2>
+<ul>
+<li><p>When the response variable is numeric, decision trees are <em>regression trees</em>.</p></li>
+<li><p>Option of choice for distinct reasons</p>
+<ul>
+<li>The relation between response and potential explanatory variables is not linear.</li>
+<li>Perform automatic variable selection.</li>
+<li>Easy to interpret, visualize, explain.</li>
+<li>Robust to outliers and can handle missing data</li>
+</ul></li>
+</ul>
+</section>
+<section id="classification-vs-regression-trees" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="classification-vs-regression-trees"><span class="header-section-number">5.2</span> Classification vs Regression Trees</h2>
+<div class="font50">
+<table class="table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 37%">
+<col style="width: 37%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Aspect</strong></th>
+<th style="text-align: left;"><strong>Regression Trees</strong></th>
+<th style="text-align: left;"><strong>Classification Trees</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Outcome var. type</td>
+<td style="text-align: left;">Continuous</td>
+<td style="text-align: left;">Categorical</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Goal</td>
+<td style="text-align: left;">To predict a numerical value</td>
+<td style="text-align: left;">To predict a class label</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Splitting criteria</td>
+<td style="text-align: left;">Mean Squared Error, Mean Abs. Error</td>
+<td style="text-align: left;">Gini Impurity, Entropy, etc.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Leaf node prediction</td>
+<td style="text-align: left;">Mean or median of the target variable in that region</td>
+<td style="text-align: left;">Mode or majority class of the target variable ...</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Examples of use cases</td>
+<td style="text-align: left;">Predicting housing prices, predicting stock prices</td>
+<td style="text-align: left;">Predicting customer churn, predicting high/low risk in diease</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Evaluation metric</td>
+<td style="text-align: left;">Mean Squared Error, Mean Absolute Error, R-square</td>
+<td style="text-align: left;">Accuracy, Precision, Recall, F1-score, etc.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="regression-tree-example" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="regression-tree-example"><span class="header-section-number">5.3</span> Regression tree example</h2>
+<ul>
+<li>The <code>airquality</code> dataset from the <code>datasets</code> package contains daily air quality measurements in New York from May through September of 1973 (153 days).</li>
+<li>The main variables include:
+<ul>
+<li>Ozone: the mean ozone (in parts per billion) …</li>
+<li>Solar.R: the solar radiation (in Langleys) …</li>
+<li>Wind: the average wind speed (in mph) …</li>
+<li>Temp: the maximum daily temperature (ºF) …</li>
+</ul></li>
+<li>Main goal : Predict ozone concentration.</li>
+</ul>
+</section>
+<section id="non-linear-relationships" class="level2 smaller" data-number="5.4">
+<h2 class="smaller anchored" data-number="5.4" data-anchor-id="non-linear-relationships"><span class="header-section-number">5.4</span> Non linear relationships!</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>aq <span class="ot">&lt;-</span> datasets<span class="sc">::</span>airquality</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>color <span class="ot">&lt;-</span> <span class="fu">adjustcolor</span>(<span class="st">"forestgreen"</span>, <span class="at">alpha.f =</span> <span class="fl">0.5</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>ps <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y, ...) {  <span class="co"># custom panel function</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">panel.smooth</span>(x, y, <span class="at">col =</span> color, <span class="at">col.smooth =</span> <span class="st">"black"</span>, <span class="at">cex =</span> <span class="fl">0.7</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="fu">pairs</span>(aq, <span class="at">cex =</span> <span class="fl">0.7</span>, <span class="at">upper.panel =</span> ps, <span class="at">col =</span> color)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="1.1-DecisionTrees-Slides_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="576"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="building-the-tree-1-splitting" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="building-the-tree-1-splitting"><span class="header-section-number">5.5</span> Building the tree (1): Splitting</h2>
+<div class="font80">
+<ul>
+<li>Consider:
+<ul>
+<li>all predictors <span class="math inline">\(X_1, \dots, X_n\)</span>, and</li>
+<li>all values of cutpoint <span class="math inline">\(s\)</span> for each predictor and</li>
+</ul></li>
+<li>For each predictor find boxes <span class="math inline">\(R_1, \ldots, R_J\)</span> that minimize the RSS, given by:</li>
+</ul>
+<p><span class="math display">\[
+\sum_{j=1}^J \sum_{i \in R_j}\left(y_i-\hat{y}_{R_j}\right)^2
+\]</span></p>
+<p>where <span class="math inline">\(\hat{y}_{R_j}\)</span> is the mean response for the training observations within the <span class="math inline">\(j\)</span> th box.</p>
+</div>
+</section>
+<section id="building-the-tree-2-splitting" class="level2" data-number="5.6">
+<h2 data-number="5.6" class="anchored" data-anchor-id="building-the-tree-2-splitting"><span class="header-section-number">5.6</span> Building the tree (2): Splitting</h2>
+<div class="font80">
+<ul>
+<li>To do this, define the pair of half-planes</li>
+</ul>
+<p><span class="math display">\[
+R_1(j, s)=\left\{X \mid X_j&lt;s\right\} \text { and } R_2(j, s)=\left\{X \mid X_j \geq s\right\}
+\]</span></p>
+<p>and seek the value of <span class="math inline">\(j\)</span> and <span class="math inline">\(s\)</span> that minimize the equation:</p>
+<p><span class="math display">\[
+\sum_{i: x_i \in R_1(j, s)}\left(y_i-\hat{y}_{R_1}\right)^2+\sum_{i: x_i \in R_2(j, s)}\left(y_i-\hat{y}_{R_2}\right)^2.
+\]</span></p>
+</div>
+</section>
+<section id="building-the-tree-3-prediction" class="level2 smaller" data-number="5.7">
+<h2 class="smaller anchored" data-number="5.7" data-anchor-id="building-the-tree-3-prediction"><span class="header-section-number">5.7</span> Building the tree (3): Prediction</h2>
+<div class="columns">
+<div class="column" style="width:40%;">
+<ul>
+<li><p>Once the regions have been created we predict the response using the mean of the trainig observations <em>in the region to which that observation belongs</em>.</p></li>
+<li><p>In the example, for an observation belonging to the shaded region, the prediction would be:</p></li>
+</ul>
+<p><span class="math display">\[
+\hat{y} =\frac{1}{4}(y_2+y_3+y_5+y_9)
+\]</span></p>
+</div><div class="column" style="width:60%;">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="st">"Assets/RegressionTree-Prediction1.png"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Assets/RegressionTree-Prediction1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="example-a-regression-tree" class="level2" data-number="5.8">
+<h2 data-number="5.8" class="anchored" data-anchor-id="example-a-regression-tree"><span class="header-section-number">5.8</span> Example: A regression tree</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(aq), <span class="at">size =</span> <span class="fu">nrow</span>(aq)<span class="sc">*</span><span class="fl">0.7</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>aq_train <span class="ot">&lt;-</span> aq[train,]</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>aq_test  <span class="ot">&lt;-</span> aq[<span class="sc">-</span>train,]</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>aq_regresion <span class="ot">&lt;-</span> tree<span class="sc">::</span><span class="fu">tree</span>(<span class="at">formula =</span> Ozone <span class="sc">~</span> ., </span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>                           <span class="at">data =</span> aq_train, <span class="at">split =</span> <span class="st">"deviance"</span>)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(aq_regresion)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Regression tree:
+tree::tree(formula = Ozone ~ ., data = aq_train, split = "deviance")
+Variables actually used in tree construction:
+[1] "Temp"    "Wind"    "Solar.R" "Day"    
+Number of terminal nodes:  8 
+Residual mean deviance:  285.6 = 21420 / 75 
+Distribution of residuals:
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+-58.2000  -7.9710  -0.4545   0.0000   5.5290  81.8000 </code></pre>
+</div>
+</div>
+</section>
+<section id="example-plot-the-tree" class="level2" data-number="5.9">
+<h2 data-number="5.9" class="anchored" data-anchor-id="example-plot-the-tree"><span class="header-section-number">5.9</span> Example: Plot the tree</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="at">x =</span> aq_regresion, <span class="at">type =</span> <span class="st">"proportional"</span>)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(<span class="at">x =</span> aq_regresion, <span class="at">splits =</span> <span class="cn">TRUE</span>, <span class="at">pretty =</span> <span class="dv">0</span>, <span class="at">cex =</span> <span class="fl">0.8</span>, <span class="at">col =</span> <span class="st">"firebrick"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="1.1-DecisionTrees-Slides_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="576"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="error-estimation-and-optimization-for-regression-trees" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Error estimation and optimization for regression trees</h1>
+<section id="prunning-the-tree-1" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="prunning-the-tree-1"><span class="header-section-number">6.1</span> Prunning the tree (1)</h2>
+<ul>
+<li>As before, <em>cost-complexity prunning</em> can be applied</li>
+<li>We consider a sequence of trees indexed by a nonnegative tuning parameter <span class="math inline">\(\alpha\)</span>.</li>
+<li>For each value of <span class="math inline">\(\alpha\)</span> there corresponds a subtree <span class="math inline">\(T \subset T_0\)</span> such that:</li>
+</ul>
+<div class="font80">
+<p><span class="math display">\[
+\sum_{m=1}^{|T|} \sum_{y_i \in R_m}
+\left(y_i -\hat{y}_{R_m}\right)^2+
+\alpha|T|\quad (*)
+\label{prunning}
+\]</span></p>
+</div>
+<p>is as small as possible.</p>
+</section>
+<section id="tuning-parameter-alpha" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="tuning-parameter-alpha"><span class="header-section-number">6.2</span> Tuning parameter <span class="math inline">\(\alpha\)</span></h2>
+<ul>
+<li><span class="math inline">\(\alpha\)</span> controls a trade-off between the subtree’s complexity and its fit to the training data.</li>
+<li>When <span class="math inline">\(\alpha=0\)</span>, then the subtree <span class="math inline">\(T\)</span> will simply equal <span class="math inline">\(T_0\)</span>.</li>
+<li>As <span class="math inline">\(\alpha\)</span> increases, there is a price to pay for having a tree with many terminal nodes, and so (*) will tend to be minimized for a smaller subtree.</li>
+<li>Equation (*1) is reminiscent of the lasso.</li>
+<li><span class="math inline">\(\alpha\)</span> can be chosen by cross-validation .</li>
+</ul>
+</section>
+<section id="optimizing-the-tree-alpha" class="level2 smaller" data-number="6.3">
+<h2 class="smaller anchored" data-number="6.3" data-anchor-id="optimizing-the-tree-alpha"><span class="header-section-number">6.3</span> Optimizing the tree (<span class="math inline">\(\alpha\)</span>)</h2>
+<ol type="1">
+<li><p>Use recursive binary splitting to grow a large tree on the training data, stopping only when each terminal node has fewer than some minimum number of observations.</p></li>
+<li><p>Apply cost complexity pruning to the large tree in order to obtain a sequence of best subtrees, as a function of <span class="math inline">\(\alpha\)</span>.</p></li>
+<li><p>Use K-fold cross-validation to choose <span class="math inline">\(\alpha\)</span>. That is, divide the training observations into <span class="math inline">\(K\)</span> folds. For each <span class="math inline">\(k=1, \ldots, K\)</span> :</p>
+<ol type="1">
+<li>Repeat Steps 1 and 2 on all but the <span class="math inline">\(k\)</span> th fold of the training data.</li>
+<li>Evaluate the mean squared prediction error on the data in the left-out <span class="math inline">\(k\)</span> th fold, as a function of <span class="math inline">\(\alpha\)</span>.</li>
+</ol></li>
+</ol>
+<p>Average the results for each value of <span class="math inline">\(\alpha\)</span>. Pick <span class="math inline">\(\alpha\)</span> to minimize the average error.</p>
+<ol start="4" type="1">
+<li>Return the subtree from Step 2 that corresponds to the chosen value of <span class="math inline">\(\alpha\)</span>.</li>
+</ol>
+</section>
+<section id="example-prune-the-tree" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="example-prune-the-tree"><span class="header-section-number">6.4</span> Example: Prune the tree</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>cv_aq <span class="ot">&lt;-</span> tree<span class="sc">::</span><span class="fu">cv.tree</span>(aq_regresion, <span class="at">K =</span> <span class="dv">5</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>optimal_size <span class="ot">&lt;-</span>  <span class="fu">rev</span>(cv_aq<span class="sc">$</span>size)[<span class="fu">which.min</span>(<span class="fu">rev</span>(cv_aq<span class="sc">$</span>dev))]</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>aq_final_tree <span class="ot">&lt;-</span> tree<span class="sc">::</span><span class="fu">prune.tree</span>(</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tree =</span> aq_regresion,</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">best =</span> optimal_size</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(aq_final_tree)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Regression tree:
+tree::tree(formula = Ozone ~ ., data = aq_train, split = "deviance")
+Variables actually used in tree construction:
+[1] "Temp"    "Wind"    "Solar.R" "Day"    
+Number of terminal nodes:  8 
+Residual mean deviance:  285.6 = 21420 / 75 
+Distribution of residuals:
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+-58.2000  -7.9710  -0.4545   0.0000   5.5290  81.8000 </code></pre>
+</div>
+</div>
+<p>In this example pruning does not improve the tree.</p>
+</section>
+</section>
+<section id="advantages-and-disadvantages-of-trees" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Advantages and disadvantages of trees</h1>
+<section id="trees-have-many-advantages" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="trees-have-many-advantages"><span class="header-section-number">7.1</span> Trees have many advantages</h2>
+<ul>
+<li><p>Trees are very easy to explain to people.</p></li>
+<li><p>Decision trees may be seen as good mirrors of human decision-making.</p></li>
+<li><p>Trees can be displayed graphically, and are easily interpreted even by a non-expert.</p></li>
+<li><p>Trees can easily handle qualitative predictors without the need to create dummy variables.</p></li>
+</ul>
+</section>
+<section id="but-they-come-at-a-price" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="but-they-come-at-a-price"><span class="header-section-number">7.2</span> But they come at a price</h2>
+<ul>
+<li><p>Trees generally do not have the same level of predictive accuracy as sorne of the other regression and classification approaches.</p></li>
+<li><p>Additionally, trees can be very non-robust: a small change in the data can cause a large change in the final estimated tree.</p></li>
+</ul>
+</section>
+</section>
+<section id="references-and-resources" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> References and Resources</h1>
+<section id="references" class="level2 smaller" data-number="8.1">
+<h2 class="smaller anchored" data-number="8.1" data-anchor-id="references"><span class="header-section-number">8.1</span> References</h2>
+<ul>
+<li><p><a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/decisionForests_MSR_TR_2011_114.pdf">A. Criminisi, J. Shotton and E. Konukoglu (2011) Decision Forests for Classifcation, Regression … Microsoft Research technical report TR-2011-114</a></p></li>
+<li><p>Efron, B., Hastie T. (2016) Computer Age Statistical Inference. Cambridge University Press. <a href="https://hastie.su.domains/CASI/index.html">Web site</a></p></li>
+<li><p>Hastie, T., Tibshirani, R., &amp; Friedman, J. (2009). The elements of statistical learning: Data mining, inference, and prediction. Springer.</p></li>
+<li><p>James, G., Witten, D., Hastie, T., &amp; Tibshirani, R. (2013). An introduction to statistical learning (Vol. 112). Springer. <a href="https://www.statlearning.com/">Web site</a></p></li>
+</ul>
+</section>
+<section id="complementary-references" class="level2" data-number="8.2">
+<h2 data-number="8.2" class="anchored" data-anchor-id="complementary-references"><span class="header-section-number">8.2</span> Complementary references</h2>
+<ul>
+<li><p>Breiman, L., Friedman, J., Stone, C. J., &amp; Olshen, R. A. (1984). Classification and regression trees. CRC press.</p></li>
+<li><p>Brandon M. Greenwell (202) Tree-Based Methods for Statistical Learning in R. 1st Edition. Chapman and Hall/CRC DOI: https://doi.org/10.1201/9781003089032</p></li>
+<li><p>Genuer R., Poggi, J.M. (2020) Random Forests with R. Springer ed.&nbsp;(UseR!)</p></li>
+</ul>
+</section>
+<section id="resources" class="level2" data-number="8.3">
+<h2 data-number="8.3" class="anchored" data-anchor-id="resources"><span class="header-section-number">8.3</span> Resources</h2>
+<ul>
+<li><p><a href="https://online.stat.psu.edu/stat508/">Applied Data Mining and Statistical Learning (Penn Statte-University)</a></p></li>
+<li><p><a href="https://daviddalpiaz.github.io/r4sl/">R for statistical learning</a></p></li>
+<li><p><a href="http://www.sthda.com/english/articles/35-statistical-machine-learning-essentials/141-cart-model-decision-tree-essentials/#example-of-data-set">CART Model: Decision Tree Essentials</a></p></li>
+<li><p><a href="https://cran.r-project.org/web/packages/rpart/vignettes/longintro.pdf">An Introduction to Recursive Partitioning Using the RPART Routines</a></p></li>
+</ul>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
