@@ -2,8 +2,10 @@
 title: "Decision Trees"
 author: "Ivet A., Laura A., Arnau G."
 output:
+  html_document:
+    df_print: paged
   pdf_document:
-    number_sections: yes
+    number_sections: true
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +19,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE,
 File `HFCRD.csv` contains the *Heart Failure Clinical Records Dataset* with information on 299 patients with advanced heart failure in whom the following variables were analyzed:
 
 - `age`: age of the patient (years)
-- `anaemia`: decrease of red blood cells or - hemoglobin (boolean)
+- `anaemia`: decrease of red blood cells or hemoglobin (boolean)
 - `creatinine_phosphokinase`: level of the CPK enzyme in the blood $(\mathrm{mcg} / \mathrm{L})$
 - `diabetes`: if the patient has diabetes (boolean)
 - `ejection_fraction`: ejection fraction: percentage of blood leaving the heart at each contraction
@@ -68,7 +70,7 @@ The next chunk displays a quite complete description of the features:
 
 ```{r}
 library(skimr)
-skim(hfcrd[, -13])
+skim(hfcrd[, -13], .data_name = "HFCRD")
 ```
 
 We can wee the absence of missing values in the data, which is nice. The other factor variables seem also to be much unbalanced, but we hope that this fact won't affect negatively the training process.
@@ -111,9 +113,10 @@ Before moving into the fitting of any model, data should be prepared. As scaling
 
 ```{r}
 set.seed(1234)
-n <- nrow(features)
+n <- nrow(hfcrd)
 train_prop <- 2/3
-train_ind <- sample(1:n, train_prop*n)
+train_ind <- sample(1:n, train_prop * n)
+hfcrd_train <- hfcrd[train_ind, ]
 hfcrd_test <- hfcrd[-train_ind, ]
 survival_test <- hfcrd[-train_ind, "DEATH_EVENT"]
 ```
@@ -124,44 +127,189 @@ In this section we are going to fit the following statistical models:
 
 1. A classification tree to predict survival.
 2. A logistic classifiers with the same goals and assessment.
-3. A third predictive model of our choice: ARNAU AQUÍ EL NOM DEL QUE TRIES
+3. A third predictive model of our choice: a Bayesian Logistic Classifier.
 
 For each one of them we'll do the required tuning, if needed, train the model and do a proper test-based evaluation.
 
 ## Classification tree
 
-**IVET**
+The first model we are going to fit is a *Classification Tree*. We will use the training set, `hfcrd_train`, to try to predict the `DEATH_EVENT` using all the rest of variables.
+
+We choose to use the `caret` library, which can be used to fit this type of models by specifying the argument `method = "rpart"` in the `train` method. By default, this uses the bootstrap to choose the optimal value for the hyperparameter $\alpha$ (which controls the the trade-off between tree complexity and accuracy). We prefer to use *Cross-Validation* instead, with 10 folds. In additions, the argument `tuneLength = 15` is added in order to choose between 15 different values of $\alpha$.
 
 ```{r}
-library(tree)
-hfcrd_tree <- tree(DEATH_EVENT ~ ., hfcrd,
-                   subset = train_ind,
-                   split = "deviance")
+set.seed(12345)
+library(caret)
+tree <- train(DEATH_EVENT ~ .,
+              data = hfcrd_train,
+              method = "rpart",
+              tuneLength = 15,
+              trControl = trainControl(method = "cv", number = 10)) 
+tree
 ```
 
-```{r}
-summary(hfcrd_tree)
-```
+Let's see the accuracy obtained for each value of $\alpha$:
 
 ```{r}
-plot(hfcrd_tree)
-text(hfcrd_tree,pretty=0, cex=0.6)
+plot(tree)
 ```
 
+Most of the values considered result in the same accuracy. We can see, however, the presence of an absolute maximum near 0:
+
 ```{r}
-tree.pred=predict(hfcrd_tree,hfcrd_test,type="class")
-res <- table(tree.pred,survival_test)
-res
-accrcy <- sum(diag(res)/sum(res))
+max_acc_ind <- which.max(tree$results[, "Accuracy"])
+(alpha_opt <- tree$results[max_acc_ind, "cp"])
+(acc_opt <- tree$results[max_acc_ind, "Accuracy"])
 ```
+
+A value of $\alpha =$ `r round(alpha_opt, 3)` gives the maximum accuracy achieved by the tree, which is **`r round(acc_opt, 3)`**. The `finalModel` attribute saved in the `tree` object stored the tree corresponding to these optimal values: 
+
+```{r}
+library(rpart.plot)
+rpart.plot(tree$finalModel, cex = 0.8)
+```
+
+By looking at the tree we can realize how only 3 variables seem to be relevant in order to determine survival. Moreover, the `varImp()` function can be used to see with more detailed the importance of each feature:
+
+```{r}
+plot(varImp(tree))
+```
+
+Actually, more variables are relevant for the response target. However, they might contain too less information and so considering them might lead the model to overfit.
+
+Let's conclude the analysis of this model by checking its performance with the test set:
+
+```{r}
+pred_test <- predict(tree, newdata = hfcrd_test)
+(confMat <- confusionMatrix(pred_test, survival_test))
+```
+
+The model achieves an accuracy of **`r confMat$overall[1]`**, which is even slightly higher than the one obtained for the training set! This are very good results, because indicated that the tree generalizes well for new data.
+
+It is also nice to notice that this results are reached by taking into account the data of only 3 variables. This implies that applying this model in the future might be easy because only a few information of the individuals will be needed in order to predict whether they are going to survive or not. 
 
 ## Logistic classifier
 
 **LAURA**
 
-## Bayesian???
+## Bayesian logistic classifier
 
-**ARNAU**
+In this section we will be fitting a Bayesian logistic regression model. We have been following the chapters 21 and 22 of the Kruschke's book (which can be download in (https://nyu-cdsc.github.io/learningr/assets/kruschke_bayesian_in_R.pdf)). Moreover, we have been following the github blog (https://avehtari.github.io/modelselection/diabetes.html#4_A_Bayesian_logistic_regression_model), where there is an example on how to fit a Bayesian logistic regression model using the `rstanarm` package. 
+
+We will be using a Bayesian logistic regression model. It is, we assume $y_i\sim Bern(\mu)$ where $\mu=logistic(\beta_0+\sum^p_{i=1}\beta_iX_i)$ being $X_i$ the covariates. And we will be taking non-informative prior distributions.
+
+We charge the required libraries in this section:
+
+```{r}
+library(rstan)
+library(bayesplot)
+library(rstanarm)
+library(ggplot2)
+```
+
+We will be using the `rstanarm` package which is an `R` package that emulates other `R` model-fitting functions but uses Stan via the `rstan` package. See information about the `rstanarm` package on (https://mc-stan.org/rstanarm/). 
+
+The next Bayesian logistic regression model is fitted via Stan by means of the MCMC method. 
+
+```{r}
+post <- stan_glm(DEATH_EVENT~., data = hfcrd_train,
+                 family = binomial(link = "logit"),
+                 seed = 1234)
+```
+
+We should check for the well-convergence of the MCMC method. The reader can run the following code if he/she is interested on see a nice shiny app where the different features related with the convergence of the MCMC method are greatly displayed. Here we can see that the convergence has been reached.
+
+```{r}
+# launch_shinystan(post, ppd = FALSE)
+```
+
+In the previous shiny app there are also features related with the fitted model, the posterior distributions obtained, etc. It is really nice.
+
+Let us print the `rstanarm` object firstly:
+
+```{r}
+print(post)
+```
+
+Let us plot the posterior distributions of the parameters:
+
+```{r}
+plot(post, "areas", prob = 0.95, prob_outer = 1) + 
+  geom_vline(xintercept = 0, color = "red", lty = 2)
+```
+
+Here we can not visualize as we want the curve of the posterior distributions, so let us plot apart some of these curves. We choose to plot those curves which posterior distribution seems to put few probability on the 0. Notice that, in order to check the significance of the parameters in our model, we should check whether there is a lot of probability around the 0 in the posterior distributions obtained. 
+
+```{r}
+plot(post, "areas", prob = 0.95, prob_outer = 1, pars = param_names[1]) + 
+  geom_vline(xintercept = 0, color = "red", lty = 2)
+plot(post, "areas", prob = 0.95, prob_outer = 1, pars = param_names[2]) + 
+  geom_vline(xintercept = 0, color = "red", lty = 2)
+plot(post, "areas", prob = 0.95, prob_outer = 1, pars = param_names[3]) + 
+  geom_vline(xintercept = 0, color = "red", lty = 2)
+plot(post, "areas", prob = 0.95, prob_outer = 1, pars = param_names[4]) + 
+  geom_vline(xintercept = 0, color = "red", lty = 2)
+plot(post, "areas", prob = 0.95, prob_outer = 1, pars = param_names[5]) + 
+  geom_vline(xintercept = 0, color = "red", lty = 2)
+plot(post, "areas", prob = 0.95, prob_outer = 1, pars = param_names[6]) + 
+  geom_vline(xintercept = 0, color = "red", lty = 2)
+```
+
+And, as we have painted with the blue zone the 95% credibility interval, we have that those posteriors not including the 0 within the blue zone are significant at a 95% level (there is a 95% of that the 0 is not the parameter value). We have seen this graphically, let us see it now in a more compact way by means of 95% credibility intervals:
+
+```{r}
+round(posterior_interval(post, prob = 0.95), 3)
+```
+
+As we can see, the 0 is included in the 95% credibility interval of `anaemia1`, `creatinine_phosphokinase`, `diabetes1`, `high_blood_pressure1`, `platelets`, `sex1`, `smoking1`. Thus, these are not significant covariates. However, the rest of the covariates they are. 
+
+Now, it is time to see how good is our Bayesian model classifying and predicting. We compute posterior predictive probabilities and use them to compute classification error. We first compute the posterior predictive probabilities using the `posterior_epred()` function, then we compute an estimate of this posterior predictive distributions, we have chosen the mean, and then we have the probabilities for each observation in the training sample to be death event or not. We use a $0.5$ threshold to classify these probabilities. And finally we compare the obtained predictions with the real one to compute the accuracy.
+
+```{r}
+preds <- posterior_epred(post)
+pred <- colMeans(preds)
+pr <- as.integer(pred >= 0.5)
+# posterior classification accuracy
+round(mean(xor(pr,as.integer(hfcrd_train$DEATH_EVENT == 0))), 2)
+```
+
+
+And then the accuracy is $0.82$. Notwithstanding, we know that this accuracy computed with the sample used for build the model could be overestimating. Thus, let us do predictions with the test data set and compute again the accuracy. 
+
+```{r}
+preds_test <- posterior_epred(post, newdata = hfcrd_test)
+pred_test <- colMeans(preds_test)
+pr_test <- as.integer(pred_test >= 0.5)
+# posterior classification accuracy
+round(mean(xor(pr_test,as.integer(hfcrd_test$DEATH_EVENT == 0))), 2)
+```
+
+Thus, we have obtained an accuracy of $0.77$ with the test data set.
+
+We finally find the optimal threshold by means of the ROC curve.
+
+```{r}
+library(pROC)
+roc_default <- roc(DEATH_EVENT ~ pred_test, data = hfcrd_test)
+plot(roc_default)
+```
+
+
+```{r}
+best_thresh <- coords(roc_default, 
+                     x = "best",
+                     best.method = "closest.topleft")
+best_thresh
+```
+We can see that the best threshold is $0.31$, which is pretty far away from the $0.5$ chosen in the beginning. Let us compute the accuracy now with this threshold:
+
+```{r}
+pr_test_tr <- as.integer(pred_test >= 0.3137333)
+# accuracy with new threshold
+round(mean(xor(pr_test_tr,as.integer(hfcrd_test$DEATH_EVENT == 0))), 2)
+```
+
+We have obtained the same accuracy, but better specificity and sensitivity. 
 
 # Conclusions
 
