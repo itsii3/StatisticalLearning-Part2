@@ -47,7 +47,6 @@ Weak learners low predictive accuracy may be due to the predictor having high bi
 ![](Assets/1.2-EnsembleMethods_insertimage_1.png)
 </center>
 
-
 **Note.** Trees may be *weak* learners:
 
 - May be sensitive to small changes in training data that lead to very different tree structure.
@@ -93,8 +92,8 @@ If we rely on how they deal with the bias-variance trade-off we can consider dis
   - *Stacked bagging* 
   
 [Emnsemble methods cheatsheet](https://sites.google.com/view/datascience-cheat-sheets#h.t1jchxvxlgr2)
-  
-# Bagging: Aggregating predictors
+
+# The Bootstrap
 
 ## Bagging: bootstrap aggregation
 
@@ -119,8 +118,6 @@ __*What means averaging trees?*__ Two questions arise here:
     - Average predictions for regression trees.
     - Majority voting for classification trees.
 
-# The Bootstrap
-
 ## The bootstrap
 
 *Bootstrap* methods were introduced to estimate the standard error of a statistic.
@@ -143,10 +140,9 @@ We illustrate it with the simplest case: *estimating the standard error (that is
 
 ## Empirical Distribution Function
 
-- Let $X$ be a random variable with distribution function $F$,
-- Let $\mathbf{X}=X_1,\ldots,X_n$ be an i.i.d random sample of $F$ and,
-- let $x_1,\dots, x_n$ be a realization of $\mathbf{X}$.
-- The *Empirical Cumulative Distribution Function (ECDF)*
+Let $X$ be a random variable with distribution function $F$, let $\mathbf{X}=X_1,\ldots,X_n$ be an i.i.d random sample of $F$ and, let $x_1,\dots, x_n$ be a realization of $\mathbf{X}$.
+
+The *Empirical Cumulative Distribution Function (ECDF)*
 $$
 F_n(x) = \frac{1}{n} \#\{x_i\le x: i=1\dots n\} = \frac{1}{n}
 \sum_{i=1}^n I_{(-\infty,x]}(x_i),
@@ -156,58 +152,55 @@ is the function that assigns to each real number $x$ the proportion of observed 
 ### The ECDF in `R`
 
 ```{r echo=TRUE}
-x<- c(2,5,0,11,-1)
+x <- c(2,5,0,11,-1)
 Fn <- ecdf(x)
 knots(Fn)
+```
+```{r}
+#| code-fold: true
 cat("Fn(3) = ", Fn(3))
 cat("Fn(-2) = ", Fn(-2))
-```
-
-```{r echo=TRUE}
 plot(Fn)
 ```
 
+### The ECDF has (great) good properties
 
-## The ECDF has (great) good properties
-
-- It can be proved that $F_n (x)$ is a cumulative distribution function.
+It can be proved that $F_n (x)$ is a **cumulative distribution function**.
 
 - Indeed $F_n()$ is a very important DF because it comes to be *the best approximation that one can find for the theoretical (population) distribution function*, that is: \\ $F_n(x) \simeq F(x)$ as $n \rightarrow \infty$.
 
-- This result, more formally stated is the Glivenko-Cantelli theorem also know as the *Central Theorem of Statistics*.
+This result, more formally stated is the Glivenko-Cantelli theorem also know as the *Central Theorem of Statistics*.
 
 ### Fn is a distribution function
 
-- Given a sample,  $\mathbf{X}$ from a certain distribution, $X$,
-- Consider it a discrete random variable $X_e$ that sets mass $1/n$ to each of the observed $n$ points $x_i$:
+Given a sample,  $\mathbf{X}$ from a certain distribution, $X$, consider it a discrete random variable $X_e$ that sets mass $1/n$ to each of the observed $n$ points $x_i$:
 
-![](Assets/1.2-Ensemble_Methods-Slides_insertimage_3.png)
+![](Assets/1.2-Ensemble_Methods-Slides_insertimage_3.png){width=70%}
 
 -  $F_n$ is the distribution (function) of $X_e$.
 
-- From here, we notice that *generating samples from $F_n$ can be done by randomly taking values from $\mathbf{X}$ with probability $1/n$*
+From here, we notice that *generating samples from $F_n$ can be done by randomly taking values from $\mathbf{X}$ with probability $1/n$*
 
 ## Plug-in estimators
 
-- Assume we want to estimate some parameter $\theta$,
-that can be expressed as $\theta (F)$, where $F$ is the distribution function of each $X_i$ in $(X_1,X_2,...,X_n)$. 
+Assume we want to estimate some parameter $\theta$,
+that can be expressed as $\theta (F)$, where $F$ is the distribution function of each $X_i$ in $(X_1,X_2,...,X_n)$.
+
 - For example, $\theta = E_F(X)=\theta (F)$.
 
-- A *natural* way to estimate $\theta(F)$ may be to rely on *plug-in estimators*,  where $F$ in $\hat \theta (F)$ is substituted by some approximation (estimate) to $F$.
+A *natural* way to estimate $\theta(F)$ may be to rely on __*plug-in estimators*__,  where $F$ in $\hat \theta (F)$ is substituted by some approximation (estimate) to $F$.
 
-## Plug-in estimators
-
-- A plug-in estimator is obtained by substituting $F$ by an approximation to $F$, call it $\hat F$ in $\theta(F)$:
+A plug-in estimator is obtained by substituting $F$ by an approximation to $F$, call it $\hat F$ in $\theta(F)$:
 $$
 \widehat {\theta (F)}=\theta(\hat{F})
 $$
-- Given that $F_n$ is the best approximation to $F$ a reasonable plug-in estimator is $\theta(F_n)$.
-- Common sample estimators are, indeed, plug-in estimators.
+Given that $F_n$ is the best approximation to $F$ a reasonable plug-in estimator is $\theta(F_n)$.
 
-## Some plug-in estimators
+Common sample estimators are, indeed, plug-in estimators.
 
--  Many estimators we usally work with are plug-in estimators.
+### Some plug-in estimators
 
+Many estimators we usally work with are plug-in estimators.
 \begin{eqnarray*}
 \theta_1 &=& E_F(X)=\theta (F) \\
 \hat{\theta_1}&=&\overline{X}=\int XdF_n(x)=\frac
@@ -252,7 +245,7 @@ $$
 $$
 That is, *the process consists of "plugging-in" $F_n$ in the (known) functional form, $\sigma_{\hat \theta}(F)$ that defines $\sigma_{\hat \theta}$}*.
 
-### The bootstrap method
+## The bootstrap method
 
 The previous approach, $F\simeq F_n \Longrightarrow \sigma_{\hat \theta}(F) \simeq \sigma_{\hat \theta}(F_n)$ 
 presents the obvious drawback that, when the functional form $\sigma _{\hat{\theta}}(F)$ is unknown, it is not possible to carry out the substitution of $F$ by $F_n$.
@@ -266,7 +259,6 @@ $$
 __*without having to to know the form of*__ $\sigma_{\hat\theta}(F)$.
 
 To do this, *the bootstrap estimates, or directly approaches* $\sigma_{\hat{\theta}}(F_n)$ *over the sample*.
-
 
 ### Bootstrap sampling (*resampling*)
 
@@ -288,16 +280,15 @@ That is, the new (re-)sampling process consists of *extracting samples of size $
 ${\bf X^{*}}=(X_1^{*},X_2^{*},\dots ,X_n^{*})$ is a random sample of size $n$ obtained *with replacement* from the original sample $(X_1,X_2,\dots ,X_n)$.
 Samples ${\bf X^*}$, obtained through this procedure are called bootstrap samples or __*re-samples*__.
 
-### The bootstrap distribution
+Resampling consists of *extracting samples of size $n$ of $F_n$*: 
+${\bf X_b^{*}}$ is a random sample of size $n$ obtained *with replacement* from the original sample ${\bf X}$. Samples ${\bf X^*_1, X^*_2, ..., X^*_B }$, obtained through this procedure are called *bootstrap*\ samples or __*re-samples*__.
 
-The distribution of a statistic computed from re-samples is called the *bootstrap distribution*,
+- On each resample the statistic of interest $\hat \theta$ can be computed yielding a *bootstrap estimate* $\hat \theta^*_b= s(\mathbf{x^*_b})$.
+- The collection of bootstrap estimates obtained form the resampled samples can be used to estimate distinct characteristics of $\hat \theta$ such as its standard error, its bias, etc.
 
-\begin{eqnarray*}
-\mathcal {L}(\hat \theta)&\simeq& P_F(\hat\theta \leq t): \mbox{Sampling distribution of } \hat \theta,\\
-\mathcal {L}(\hat \theta^*)&\simeq& P_{F_n}(\hat\theta^* \leq t): \mbox{Bootstrap distribution of } \hat \theta,
-\end{eqnarray*}
-
-This distribution is usually not known. However, the sampling process and the calculation of the statistics can be approximated using a Monte Carlo Algorithm.
+<center>
+![](Assets/1.2-Ensemble_Methods-Slides_insertimage_2.png){width=60%}
+</center>
 
 ### Bootstrap Monte Carlo Algorithm
 
@@ -326,17 +317,17 @@ $$
 \hat{\sigma}_B(\hat\theta)\left (\simeq \sigma_B(\hat\theta)=\sigma_{\hat\theta}(F_n)\right )\simeq\hat \sigma_{\hat\theta}(F_n).
 $$
 
-### Summary
+## Summary
 
 From real world to  *bootstrap* world:
 
-```{r, fig.align='center', out.width="100%"}
-knitr::include_graphics("Assets/fromRealWorld2BootstrapWorld.png")
-```
+<center>
+![](Assets/fromRealWorld2BootstrapWorld.png)
+</center>
 
 # Bagging: Boostrap aggregating
 
-## Back to bagging
+## Back to Bagging
 
 - @Breiman1996 combined the ideas of:
   - Averaging provides decreased variance estimates,
@@ -346,43 +337,30 @@ knitr::include_graphics("Assets/fromRealWorld2BootstrapWorld.png")
   - Learn the model on each bootstrapped training set to get a prediction $\hat f^{*b}(x)$.
   - Average $\hat f^{*b}(x)$ to obtain improved prediction/classification.
 
+### Bagging prediction/classifier
 
-## Bagging prediction/classifier
+For regression (trees) the **bagged estimate** is the average prediction at $x$ from these $B$ trees.
+$$
+\hat f_{bag}(x)=\frac 1B \sum_{b=1}^B \hat f^{*b}(x)
+$$
 
-- For regression (trees) the **bagged estimate** is the average prediction at $x$ from these $B$ trees.
-
-:::{.font90}
-$$\hat f_{bag}(x)=\frac 1B \sum_{b=1}^B \hat f^{*b}(x) $$
-:::
-
-- For classification (trees) the 
+For classification (trees) the 
 **bagged classifier** selects the class with the most “votes” from the $B$ trees:
-
-:::{.font90}
 $$
 \hat G_{bag}(x) = \arg \max_k \hat f_{bag}(x).
 $$
-:::
 
-## Resampling *based* estimators
+The bootstrap was introduced as a way to provide standard error estimators. When used to compute $\hat f_{bag}(x)$ or $\hat G_{bag}(x)$, as described above, it provides direct estimators of a characteristic, not of their standard errors. However, the bagging process __*can also provide resampling based estimates of the precision of these estimators*__.
 
-- The bootstrap was introduced as a way to provide standard error estimators.
-- When used to compute $\hat f_{bag}(x)$ or $\hat G_{bag}(x)$, as described above, it provides direct estimators of a characteristic, not of their standard errors.
-- However, the bagging process *can also provide resampling based estimates of the precision of these estimators*.
+## Out-Of-Bag
 
-## Out-Of-Bag observations
+Every time a resample is taken *with replacement*, some observations are omitted, due to the multiple occurring of others.
 
-- Every time a resample is taken *with replacement*, some observations are omitted, due to the multiple occurring of others.
+<center>
+![](Assets/oobErrorEstimation.jpg)
+</center>
 
-
-```{r, fig.align='center', out.width="100%"}
-knitr::include_graphics("Assets/oobErrorEstimation.jpg")
-```
-
-- These *out-of-bag* (OOB) observations can be used to build an estimate of prediction error.
-
-
-## Out-Of-Bag error estimates
+These __*out-of-bag* (OOB) observations__ can be used to build an estimate of prediction error.
 
 Since each out-of-bag set is not used to train the model, it can be used to evaluate performance.
 
@@ -390,30 +368,24 @@ Since each out-of-bag set is not used to train the model, it can be used to eval
 2. Take the majority vote of these trees for the OOB instance, compared to the true value of the OOB instance.
 3. Compile OOB error for all instances in the OOB dataset.
 
-<!-- - For every observation $i=1, ...n$ response can be predicted using each of the trees in which that observation was OOB.  -->
-<!-- - This a variable number (around B/3) of predictions for the ith observation which can be averaged. -->
-<!-- - If $B$ is large this is essentially the LOO cross-validation error. -->
+<center>
+![](Assets/oobErrorEstimation.png)
+</center>
 
-## Illustration of OOB EE
+[Source](https://www.baeldung.com/cs/random-forests-out-of-bag-error)
 
-```{r, fig.align='center', out.width="100%"}
-knitr::include_graphics("Assets/oobErrorEstimation.png")
-```
-[Source: https://www.baeldung.com/cs/random-forests-out-of-bag-error](https://www.baeldung.com/cs/random-forests-out-of-bag-error)
+## Bagging in R
 
+The example uses the `AmesHousing` dataset on house prices in Ames, IA to predict the "Sales price" of houses.
 
-## Bagging in R (1.1)
+1. We start by splitting the dataset in test/train subsets
+2. Next we build a bagged tree on the train subset and evaluate it on the test subset.
+3. Last we try to interpret the results using "Variable importance"
 
-- The example uses the `AmesHousing` dataset on house prices in Ames, IA to predict the "Sales price" of houses.
-
-- We start by splitting the dataset in test/train subsets
-- Next we build a bagged tree on the train subset and evaluate it on the test subset.
-- Last we try to interpret the results using "Variable importance"
-
-- Bagging is equivalent to RandomForest if we use all the trees so the library `randomForest` is used.
+Bagging is equivalent to RandomForest if we use all the trees so the library `randomForest` is used.
 
 
-## Bagging - Prepare data
+### Prepare data
 
 ```{r echo=TRUE}
 # Prepare "clean" dataset from raw data
@@ -422,15 +394,13 @@ ames <- AmesHousing::make_ames()
 # Split in test/training
 set.seed(123)
 train <- sample(1:nrow(ames), nrow(ames)/2)
-# split <- rsample::initial_split(ames, prop = 0.7, 
-#                        strata = "Sale_Price")
 ames_train  <- ames[train,]
 ames_test   <- ames[-train,]
 ```
 
-## Bagging - Build bag of trees
+### Build bag of trees
 
-```{r, eval=FALSE, echo=TRUE}
+```{r, echo=TRUE}
 library(randomForest)
 set.seed(12543)
 bag.Ames <- randomForest(Sale_Price ~ ., 
@@ -440,71 +410,45 @@ bag.Ames <- randomForest(Sale_Price ~ .,
                          importance = TRUE)
 ```
 
-## Bagging - Results
+### Results
 
-```{r eval=FALSE, echo=TRUE}
-show(bag.Ames )
-
-Call:
- randomForest(formula = Sale_Price ~ ., data = ames_train, mtry = ncol(ames_train -      1), ntree = 100, importance = TRUE) 
-               Type of random forest: regression
-                     Number of trees: 100
-No. of variables tried at each split: 80
-
-          Mean of squared residuals: 771498315
-                    % Var explained: 87.89
-
+```{r, echo=TRUE}
+show(bag.Ames)
 ```
 
-## Bagging - Prediction and accuracy (1)
+### Prediction and accuracy
 
-
-```{r, eval=FALSE, eho=TRUE}
+```{r, eho = TRUE}
 yhat.bag <- predict(bag.Ames, newdata = ames_test)
-MSE= mean((yhat.bag -ames_test$Sale_Price)^2)
-plot(yhat.bag, ames_test$Sale_Price, main=c("MSE= ", MSE))
-abline(0, 1)
-```
-
-## Bagging - Prediction and accuracy (1)
-
-```{r fig.align='center', out.width="100%"}
-knitr::include_graphics("Assets/bag_Ames_fit.png")
+MSE <- mean((yhat.bag -ames_test$Sale_Price)^2)
+plot(yhat.bag, ames_test$Sale_Price, main = c("MSE = ", MSE))
+abline(0, 1, col = "purple")
 ```
 
 ## Interpetability: The "achiles heel"
-
 
 - Trees may have a straightforward interpretation,
   - Plotting the tree provides information about
     - which variables are important
     - how they act on the prediction
-    
 - Ensembles are less intuitive because 
   - there is no consensus tree.
   - not clear which variables are most important.
 
-
-## Feature importance from Trees
+**Feature importance from Trees:**
 
 - To measure feature importance, the reduction in the loss function (e.g., SSE) attributed to each variable at each split is tabulated.
-
 - The total reduction in the loss function across all splits by a variable are summed up and used as the total feature importance.
 
-
-## Feature importance for Ensembles
+**Feature importance for Ensembles**
 
 Variable importance measures can be extended to an ensemble simply by adding up variable importance over all trees built.
 
-```{r, eval=FALSE, out.width="100%", fig.align='center'}
+```{r, out.width="100%", fig.align='center'}
 require(dplyr)
 VIP <- importance(bag.Ames) 
 VIP <- VIP[order(VIP[,1], decreasing = TRUE),]
-head(VIP, n=10)
-```
-
-```{r}
-knitr::include_graphics("Assets/amesVIP2.png")
+head(VIP, n = 10)
 ```
 
 # Random Forests
