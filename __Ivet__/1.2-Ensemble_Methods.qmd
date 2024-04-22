@@ -721,23 +721,43 @@ Several advantages over Adaboost:
 - Can handle complex datasets and 
 - Can continue to improve its accuracy even after Adaboost's performance has "plateaued".
   
-### Gradient boosting algorithm
+### Gradient boosting generalizes Adaboost
 
-The main steps in Gradient Boosting are:
+- It is a generalization of the AdaBoost algorithm that allows the use of *any cost function*, as long as it is differentiable. 
+- The flexibility of this algorithm has made it possible to apply boosting to a multitude of problems (regression, multiple classification, etc.), making it one of the most successful machine learning methods. 
+- While there are various adaptations, the general idea behind all of them is the same: train models sequentially, with each model adjusting the residuals (errors) of the previous models.
 
-1. Initialize the model with a single leaf
-2. Train a new weak model (e.g. decision tree) on the *residual errors* of the previous model
-3. Add the new model to the ensemble by weighting it with a learning rate (a value between 0 and 1)
+### Gradient Boosting Algorithm
 
-Repeat steps 2-3 for a specified number of iterations or until convergence.
+- Train a first weak learner $f_1$, which predicts the response variable $ y $, and calculate the residuals $y - f_1(x)$.
+- Then, train a new model $f_2$, which tries to predict the residuals of the previous model, in other words, which tries to correct the errors made by model $f_1$.
+  - $f_1(x) \approx y$
+  - $f_2(x) \approx y - f_1(x)$
+- In the next iteration, calculate the residuals of the two models together $y - f_1(x) - f_2(x)$, the errors made by $f_1$ that $f_2$ has not been able to correct, and train a third model $f_3$ to try to correct them.
+$$
+f_3(x) \approx y - f_1(x) - f_2(x)
+$$
+- This process is repeated $M$ times, so that each new model minimizes the residuals (errors) of the previous one.
 
-### Gradient boosting architechture
+### Gradient Boosting may overfit
+
+- Since the goal of Gradient Boosting is to minimize the residuals iteration by iteration, it is susceptible to overfitting. 
+- One way to avoid this problem is by using a regularization value, also known as the learning rate ($\lambda$), which limits the influence of each model on the ensemble. 
+- As a result of this regularization, more models are needed to form the ensemble, but better results are achieved.
+  - $f_1(x) \approx y$
+  - $f_2(x) \approx y - \lambda f_1(x)$
+  - $f_3(x) \approx y - \lambda f_1(x) - \lambda f_2(x)$
+  - $y \approx \lambda f_1(x) + \lambda f_2(x) + \lambda f_3(x) + \ldots + \lambda f_m(x)$
+
+
+### Gradient Boosting Architechture
 
 ![](Assets/gradientboosting.png)
   
 ### Gradient Boosting pseudo-code
 
-1. Initialize the model with a constant value: $f_0(x) = \frac{1}{n} \sum\limits_{i=1}^{n} y_i$.
+1. Initialize the model with a constant value:
+    $f_0(x) = \frac{1}{n} \sum\limits_{i=1}^{n} y_i$
 2. For $t = 1$ to $T$:
     a. Compute the negative gradient of the loss function at the current fit:
         $r_{ti} = -\frac{\partial L(y_i, f_{t-1}(x_i))}{\partial f_{t-1}(x_i)}$
@@ -750,47 +770,33 @@ Repeat steps 2-3 for a specified number of iterations or until convergence.
 3. Output the final model:
     $F(x) = f_T(x)$
     
-## Relation with *Gradient Descent*
+### Relation with *Gradient Descent*
 
-- Gradient Boosting can be seen as an extension of Gradient Descent, a popular optimization algorithm used to find the minimum of a function. 
-  - In Gradient Descent, the weights of the model are updated in the opposite direction of the gradient of the cost function. 
-  - In Gradient Boosting, the new model is trained on the negative gradient of the loss function, which is equivalent to minimizing the loss function in the direction of steepest descent.
+Gradient Boosting can be seen as an extension of Gradient Descent, a popular optimization algorithm used to find the minimum of a function.
 
-## Gradient Descent Variations
+- In Gradient Descent, the weights of the model are updated in the opposite direction of the gradient of the cost function. 
+- In Gradient Boosting, the new model is trained on the negative gradient of the loss function, which is equivalent to minimizing the loss function in the direction of steepest descent.
 
-- Multiple extensions from Gradient Boosting.
+### Gradient Descent Variations
 
-- **XGBoost**
-  - Optimized implementation that uses regularization to control overfitting and provide better accuracy.
-  - Won many competitions.
+Multiple extensions from Gradient Boosting:
 
-- **LightGBM**
-  - Relies on a technique to reduce the number of samples used in each iteration.
-  - Faster training, good for large datasets.
+- **XGBoost.** Optimized implementation that uses regularization to control overfitting and provide better accuracy.
+
+**LightGBM.** Relies on a technique to reduce the number of samples used in each iteration. Faster training, good for large datasets.
 
 ## Boosting applications
 
 - Fraud Detection
-
 - Image and Speech Recognition
-
 - Anomaly Detection
-
 - Medical Diagnosis
-
 - Amazon's recommendation engine
-
 - Models that predict protein structures from amino acid sequences
-
 - Pattern identification in fMRI brain scans. 
 
-## Boosting application with R
+### Boosting application with R
 
 - Many packages implement the many variations of boosting:
   - [ada](https://cran.r-project.org/web/packages/ada), [adabag](https://cran.r-project.org/web/packages/ada), [mboost](https://cran.r-project.org/web/packages/mboost), [gbm](https://cran.r-project.org/web/packages/gbm), [xgboost](https://github.com/dmlc/xgboost/tree/master/R-package)
-
 - An interesting option is to rely on the [caret](https://cran.r-project.org/web/packages/caret/index.html) package which allows to run the distinct methods with a common interface.
-
-
-  
-## References
