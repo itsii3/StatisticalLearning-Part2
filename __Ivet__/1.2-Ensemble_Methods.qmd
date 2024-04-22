@@ -612,168 +612,116 @@ Some variation of Random forests are used only for variable selection
 
 ## Another ensemble approach
 
-:::{.font90}
-- The idea of *improving weak learners by aggregation* has moved historically along two distinct lines:
+The idea of *improving weak learners by aggregation* has moved historically along two distinct lines:
 
-  - Build similar learners on resamples from the original sample and, somehow, average their predictions.
-    - This entails *Bagging* and *Random Forests*
-  - Build a learner progressively, improving it at every step using weak learners, until the desired /maximal possible quality is obtained.
-    - This is what *Boosting* is about.
-:::
+- Build similar learners on resamples from the original sample and, somehow, average their predictions.
+  - This entails *Bagging* and *Random Forests*
+- Build a learner progressively, improving it at every step using weak learners, until the desired/maximal possible quality is obtained.
+  - This is what *Boosting* is about.
 
-## Bagging vs Boosting
-
-:::: {.columns}
-
-::: {.column width='50%'}
-
-```{r, out.width="100%"}
-knitr::include_graphics("Assets/baggingVsboosting1.png")
-```
-
-:::
-
-::: {.column width='50%'}
-
-```{r, out.width="100%"}
-knitr::include_graphics("Assets/baggingVsboosting2.png")
-```
-
-:::
-
-::::
+![](Assets/baggingVsboosting1.png){width=49%}
+![](Assets/baggingVsboosting2.png){width=49%}
 
 Source: [Ensemble Learning: Bagging & Boosting](https://resources.experfy.com/ai-ml/ensemble-learning-bagging-boosting/)
 
-## So what is Boosting
+So, *what is Boosting?* **Idea:** create a model that is better than any of its individual components by combining their strengths and compensating for their weaknesses.
 
-<!-- - Boosting is an ensemble learning technique used in ML for improving the accuracy of *weak learners*. -->
+For this, multiple weak models are *trained sequentially*, and each new model is trained to improve the errors made by the previous model. The final model is a weighted combination of all the models, and the weights are determined by the accuracy of each model. 
 
-- Idea: create a model that is better than any of its individual components by combining their strengths and compensating for their weaknesses.
-
-- For this, multiple weak models are *trained sequentially*, and each new model is trained to improve the errors made by the previous model. 
-
-- The final model is a weighted combination of all the models, and the weights are determined by the accuracy of each model. 
-
-<!-- - Boosting can be applied to various machine learning algorithms, including decision trees, neural networks, and support vector machines. -->
-
-## Historical background
-
-- Introduced by Robert Schapire [@Schapire89] and Yoav Freund in the 1990s . 
-- AdaBoost algorithm became the first widely-used Boosting algorithm
-- It achieved significant success in various applications, including *face detection* and *handwriting recognition*. 
-- Since then, several other Boosting algorithms have been developed, including: *Gradient Boosting*, *XGBoost*, and *LightGBM*. 
-
-## Advantages of Boosting
+### Advantages of Boosting
 
 - Boosting, like other Ensemble methods, improves the accuracy of weak learners and achieve better predictive performance than individual models.
-
 - Boosting also reduces overfitting by improving the generalization ability of models. 
-
 - Available in many flavors, 
-
 - Can be parallelized
-
 - Strong experience in Real world applications and industry.
 
-## Limitations of Boosting
+### Limitations of Boosting
 
-- Can be computationally expensive, especially when dealing with large datasets and complex models. 
-
-- Can be sensitive to noisy data and outliers, 
-
+- Can be computationally expensive, especially when dealing with large datasets and complex models.
+- Can be sensitive to noisy data and outliers,
 - May not work well with certain types of data distributions. 
-
 - Not so good as "out-of-the-box": Requires careful tuning of hyperparameters to achieve optimal performance, which can be time-consuming and challenging.
 
 ## Adaboost
 
-- AdaBoost (Adaptive Boosting) directly reflects what has been described above as "boosting".
+AdaBoost (Adaptive Boosting) directly reflects what has been described above as "boosting". Its main objective is to __*Improve classification accuracy by combining multiple "weak learners"*__.
 
-- Its main objective is to *Improve classification accuracy by combining multiple "weak learners"*
+In order to run AdaBoost it is required:
 
-- In order to run AdaBoost it is required:
+- To choose a weak learner with slightly better than random guessing capability (e.g., shallow decision trees).
+- To encoding classesas +1 and -1.
+- To set **initial equal weights** for all training observations.
 
-  - To choose a weak learner with slightly better than random guessing capability (e.g., shallow decision trees).
-  - To encoding classesas +1 and -1.
-  - To set **initial equal weights* for all training observations.
-
-## Running Adaboost
+### Running Adaboost
  
-- Adaboost proceeds iteratively by, at each iteration:
-  - Fit the weak learner using initial weights.
-  - Predict and identify misclassified observations.
-  - Update *observation weights*: decrease for correctly classified, increase for misclassified.
-  - Assign a *learner weight* to the weak learner based on its accuracy.
-- The final prediction is a *weighted combination* of all weak learners.
+Adaboost proceeds iteratively by, at each iteration:
 
-::: {.notes}
-- AdaBoost implements a vector of weights to penalize those samples that were incorrectly inferred (by increasing the weight) and reward those that were correctly inferred (by decreasing the weight). 
-  - Updating this weight vector will generate a distribution where it will be more likely to extract those samples with higher weight (that is, *those that were incorrectly inferred*), 
-  - This sample will be introduced to the next base learner in the sequence and 
-  - This will be repeated until a stop criterion is met. 
-  - Likewise, each base learner in the sequence will have assigned a weight, the higher the performance, the higher the weight and the greater the impact of this base learner for the final decision. 
-  - Finally, to make a prediction, 
-      - each base learner in the sequence will be fed with the test data, 
-      - each of the predictions of each model will be voted (for the classification case) or averaged (for the regression case)
-:::
+- Fit the weak learner using initial weights.
+- Predict and identify misclassified observations.
+- Update *observation weights*: decrease for correctly classified, increase for misclassified.
+- Assign a *learner weight* to the weak learner based on its accuracy.
 
-## Adaboost Architecture
+The final prediction is a __*weighted combination*__ of all weak learners. AdaBoost implements a vector of weights to penalize those samples that were incorrectly inferred (by increasing the weight) and reward those that were correctly inferred (by decreasing the weight). 
 
-```{r, out.width="100%"}
-knitr::include_graphics("Assets/adaboost.png")
-```
+- Updating this weight vector will generate a distribution where it will be more likely to extract those samples with higher weight (that is, *those that were incorrectly inferred*), 
+- This sample will be introduced to the next base learner in the sequence and 
+- This will be repeated until a stop criterion is met. 
+- Likewise, each base learner in the sequence will have assigned a weight, the higher the performance, the higher the weight and the greater the impact of this base learner for the final decision. 
+- Finally, to make a prediction, 
+    - each base learner in the sequence will be fed with the test data, 
+    - each of the predictions of each model will be voted (for the classification case) or averaged (for the regression case)
+
+### Adaboost Architecture
+
+![](Assets/adaboost.png)
 
 Source: [Ensemble Learning: Bagging & Boosting](https://resources.experfy.com/ai-ml/ensemble-learning-bagging-boosting/)
 
-## Adaboost pseudo-code
+### Adaboost pseudo-code
 
-:::{.font60}
 1. Initialize sample weights: $w_i = 1/N$, where $N$ = # of training samples.
 2. For each iteration $t=1,2,\dots,T$ do:
-
-  a. Train a weak classifier $h_t(x)$ on the training set weighted by $w_i$.
-  b. Compute the weighted error rate: 
-  $$\epsilon_t = \frac{\sum_{i=1}^N w_i I(y_i \neq h_t(x_i))}{\sum_{i=1}^N w_i }$$
-  c. Compute the classifier weight: $\alpha_t = \frac{1}{2}\log\frac{1-\epsilon_t}{\epsilon_t}$.
-  d. Update the sample weights: $w_i \leftarrow w_i \exp(-\alpha_t I(y_i \neq h_t(x_i)))$.
-  e. Normalize the sample weights: $w_i \leftarrow \frac{w_i}{\sum_{j=1}^N w_j}$.
-  
+    a. Train a weak classifier $h_t(x)$ on the training set weighted by $w_i$.
+    b. Compute the weighted error rate: 
+    $$
+    \epsilon_t = \frac{\sum_{i=1}^N w_i I(y_i \neq h_t(x_i))}{\sum_{i=1}^N w_i }
+    $$
+    c. Compute the classifier weight: $\alpha_t = \frac{1}{2}\log\frac{1-\epsilon_t}{\epsilon_t}$.
+    d. Update the sample weights: $w_i \leftarrow w_i \exp(-\alpha_t I(y_i \neq h_t(x_i)))$.
+    e. Normalize the sample weights: $w_i \leftarrow \frac{w_i}{\sum_{j=1}^N w_j}$.
 3. Output the final classifier: $H(x) = \text{sign}\left(\sum_{t=1}^T \alpha_t h_t(x)\right)$.
-:::
 
-## Adaboost applications
+### Adaboost applications
 
-:::{.font80}
-- AdaBoost was sucessfully used in face recognition. 
-- Task: to identify whether an image contains a face or not. 
+AdaBoost was sucessfully used in face recognition (*task:* to identify whether an image contains a face or not).
+
 - AdaBoost used to train a classifier on a set of face images and a set of non-face images. 
 - The weak classifier can be a decision stump that checks whether a specific feature is present in the image or not. 
 - AdaBoost iteratively trains weak classifiers and assigns higher weights to misclassified samples, leading to a stronger ensemble classifier. 
 - The resulting classifier can then be used to detect faces in new images with high accuracy.
-:::
 
-## Adaboost has limitations
+### Adaboost limitations
 
-- Adaboost was a breakthrough algorithm that significantly improved the accuracy of ML models. 
-- However, Adaboost has its limitations. 
-  - It does not handle continuous variables very well. 
-  - Can be sensitive to noisy data and outliers,
-  - May not perform well with complex datasets. 
-  - Its performance can reach a "plateau": it will no longer improve after a certain number of iterations.
+Adaboost was a breakthrough algorithm that significantly improved the accuracy of ML models. However, Adaboost has its limitations.
 
+- It does not handle continuous variables very well. 
+- Can be sensitive to noisy data and outliers,
+- May not perform well with complex datasets. 
+- Its performance can reach a "plateau": it will no longer improve after a certain number of iterations.
 
 ## Gradient Boosting
 
-- Developed to overcome the limitations of Adaboost.
-- Takes a different approach that can be linked with Optimization by Gradient Descent.
-- Several advantages over Adaboost
-  - Can handle continuous variables much better,
-  - It is more robust to noisy data and outliers.
-  - Can handle complex datasets and 
-  - Can continue to improve its accuracy even after Adaboost's performance has "plateaued".
+It was developed to overcome the limitations of Adaboost. Takes a different approach that can be linked with Optimization by Gradient Descent.
+
+Several advantages over Adaboost:
+
+- Can handle continuous variables much better,
+- It is more robust to noisy data and outliers.
+- Can handle complex datasets and 
+- Can continue to improve its accuracy even after Adaboost's performance has "plateaued".
   
-## Gradient boosting algorithm
+### Gradient boosting algorithm
 
 The main steps in Gradient Boosting are:
 
@@ -783,16 +731,13 @@ The main steps in Gradient Boosting are:
 
 Repeat steps 2-3 for a specified number of iterations or until convergence.
 
-## Gradient boosting architechture
+### Gradient boosting architechture
 
-```{r, out.width="100%"}
-knitr::include_graphics("Assets/gradientboosting.png")
-```
+![](Assets/gradientboosting.png)
   
-## Gradient Boosting pseudo-code{.smaller}
+### Gradient Boosting pseudo-code
 
-1. Initialize the model with a constant value:
-    $f_0(x) = \frac{1}{n} \sum\limits_{i=1}^{n} y_i$
+1. Initialize the model with a constant value: $f_0(x) = \frac{1}{n} \sum\limits_{i=1}^{n} y_i$.
 2. For $t = 1$ to $T$:
     a. Compute the negative gradient of the loss function at the current fit:
         $r_{ti} = -\frac{\partial L(y_i, f_{t-1}(x_i))}{\partial f_{t-1}(x_i)}$
