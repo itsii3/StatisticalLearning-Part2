@@ -2,10 +2,10 @@
 title: "Decision Trees"
 author: "Ivet A., Laura A., Arnau G."
 output:
-  html_document:
-    df_print: paged
   pdf_document:
     number_sections: true
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -40,7 +40,7 @@ data <- read.csv("HFCRD.csv")
 
 # Exploratory data analysis
 
-First of all, notice that many variables are described as *boolean*, but they are stored as *numerical* in the data frame. So let's save as factors variables which should be treated as that:
+First of all, notice that many variables are described as *boolean*, but they are stored as *numerical* in the data frame. So let's save as factors the variables which should be treated as that:
 
 ```{r}
 # Features
@@ -54,7 +54,7 @@ hfcrd$smoking <- as.factor(hfcrd$smoking)
 hfcrd$DEATH_EVENT <- as.factor(hfcrd$DEATH_EVENT)
 ```
 
-Let's see how is the distribution of the target:
+Let's see how the distribution of the target is:
 
 ```{r}
 survival_table <- table(hfcrd$DEATH_EVENT)
@@ -64,7 +64,7 @@ barplot(survival_table,
         col = "turquoise")
 ```
 
-It seems we have available much more data (twice) about individuals who ended up surviving after the study than from the ones who ended up dying. This could difficult the prediction for the latter cases.
+It seems we have available much more data (twice) about individuals who ended up surviving after the study than from the ones who ended up dying. This could difficult the prediction of the latter cases.
 
 The next chunk displays a quite complete description of the features:
 
@@ -73,13 +73,13 @@ library(skimr)
 skim(hfcrd[, -13], .data_name = "HFCRD")
 ```
 
-We can wee the absence of missing values in the data, which is nice. The other factor variables seem also to be much unbalanced, but we hope that this fact won't affect negatively the training process.
+We can wee the absence of missing values in the data, which is nice. The other factor variables also seem to be quite unbalanced, but we hope that this fact won't affect negatively the training process.
 
-Numerical variables, in general, do not show a symmetric distribution neither.
+Numerical variables, in general, do not show a symmetric distribution either.
 
-Another analysis that's often considered when working with data sets is a PCA. In this case we do not have a large amount of variables, so it is not a quite *mandatory* technique. However, it could be interesting to check its results.
+Another analysis that's often considered when working with data sets is a PCA. In this case we do not have a large amount of variables, so it is not a *mandatory* technique. However, it could be interesting to check its results.
 
-Notice that we use the original data set `data` because the `prcomp()` needs the data to be of type numeric (instead of factor)
+Notice that we use the original data set `data` because the `prcomp()` needs the data to be of type numeric (instead of factor).
 
 ```{r}
 hfcrd_PCA <- prcomp(data, scale = TRUE)
@@ -94,7 +94,7 @@ fviz_screeplot(hfcrd_PCA, addlabels = TRUE, ylim = c(0, 20))
 
 By looking at the previous plot we can notice how important and necessary are all the variables for our analysis, since all of them are needed in order to explain the variability of the data.
 
-With 2 components, less than a 30\% of the data is explained... So we won't discard any feature.
+With 2 components, less than a $30\%$ of the data is explained... So we won't discard any feature.
 
 One last interesting plot is the following, which shows the distribution of the first and second components by each target level:
 
@@ -109,7 +109,7 @@ The first dimension seems responsible of capturing the trend of the target varia
 
 # Data preparation
 
-Before moving into the fitting of any model, data should be prepared. As scaling is not necessary when working with trees, the only step we are going to consider is spiting the data into 2 sets: a training set $(2 / 3)$ and a test set $(1 / 3)$.
+Before moving into the fitting of any model, data should be prepared. As scaling is not necessary when working with trees, the only step we are going to consider is splitting the data into 2 sets: a training set $(2 / 3)$ and a test set $(1 / 3)$.
 
 ```{r}
 set.seed(1234)
@@ -175,7 +175,7 @@ By looking at the tree we can realize how only 3 variables seem to be relevant i
 plot(varImp(tree))
 ```
 
-Actually, more variables are relevant for the response target. However, they might contain too less information and so considering them might lead the model to overfit.
+Actually, more variables are relevant for the response target. However, they might contain too little information and so considering them might lead the model to overfit.
 
 Let's conclude the analysis of this model by checking its performance with the test set:
 
@@ -184,23 +184,95 @@ pred_test <- predict(tree, newdata = hfcrd_test)
 (confMat <- confusionMatrix(pred_test, survival_test))
 ```
 
-The model achieves an accuracy of **`r confMat$overall[1]`**, which is even slightly higher than the one obtained for the training set! This are very good results, because indicated that the tree generalizes well for new data.
+The model achieves an accuracy of **`r confMat$overall[1]`**, which is slightly higher than the one obtained for the training set! These are very good results, because it implies that the tree generalizes well for new data.
 
-It is also nice to notice that this results are reached by taking into account the data of only 3 variables. This implies that applying this model in the future might be easy because only a few information of the individuals will be needed in order to predict whether they are going to survive or not. 
+It is also nice to notice that these results are reached by taking into account the data of only 3 variables. This implies that applying this model in the future might be easy because only few information of the individuals will be needed in order to predict whether they are going to survive or not. 
 
 ## Logistic classifier
 
-**LAURA**
+Now we are going to fit a logistic regression model. To identify a good subset of predictors for this problem we are going to run best subsets with the AIC criteria. This can be easily done using the library `glmulti`.
+
+
+```{r}
+library(glmulti)
+mod_aic <- glmulti(DEATH_EVENT ~ .,
+                   data = hfcrd_train,
+                   family = binomial,
+                   level = 1,
+                   crit = "aic",
+                   plotty = FALSE,
+                   report = FALSE)
+summary(mod_aic)$bestmodel
+```
+
+Let us notice that the variables that have been chosen as useful are `diabetes`, `age`, `ejection_fraction`. `serum_creatinine`, `serum_sodium` and `time`. 
+
+The coefficients of this model are:
+
+```{r}
+mod_log <- mod_aic@objects[[1]]
+summary(mod_log)
+```
+
+Let us observe that as the variables `age` and `serum_creatinine` increase, the outcome increases. In this case, this means that the prediction gets closer to 1, that is the death of the patient. In return, as the variables with negative coefficients (`ejection_fraction`, `serum_sodium` and `time`) increase, the prediction decreases (survival of the patient).
+
+To see more clearly the effect that some of these variables have on the outcome, we can use an interaction plot. For example, we are going to see how `age` and `time` affect the prediction.
+
+```{r}
+library(ggeffects)
+par(mfrow=c(1,2))
+plot1 <- ggemmeans(mod_log, terms = "time")
+plot(plot1)
+plot2 <- ggemmeans(mod_log, terms = "age")
+plot(plot2)
+par(mfrow=c(1,1))
+```
+
+As we have already said, time has a negative effect on the response variable and age has a positive one.
+
+We can use this model to try to predict the target variable for the test set. Since the predictions are continuous and not binary, we will need to define a threshold to partition which predictions are going to be considered 1 or 0. For now, we will use 0.5 as the threshold. With these predictions we can compute the confusion matrix.
+
+```{r}
+pred_prob <- predict(mod_log, type = "response", newdata = hfcrd_test)
+pred05 <- as.factor(1 * (pred_prob > 0.5))
+(confMat_log <- confusionMatrix(pred05, survival_test))
+```
+
+The accuracy of the model using this threshold is  **`r confMat_log$overall[1]`**, so the model does a pretty good job with new data. However, 0.5 may not be the best threshold we can define for this problem. In order to find it, we can use the ROC curve. Let us plot it.
+
+```{r}
+library(pROC)
+roc_aic <- roc(DEATH_EVENT ~ pred_prob, data = hfcrd_test)
+plot(roc_aic)
+```
+
+Now, we can easily find the best threshold as follows.
+
+```{r}
+best_aic <- coords(roc_aic,
+                   x = "best",
+                   best.method = "closest.topleft")
+best_aic[[1]]
+```
+
+Finally, using `r best_aic[[1]]` as our new threshold for the predictions, we obtain a confusion matrix with an improved accuracy. 
+
+```{r}
+pred_threshold <- as.factor(1 * (pred_prob > best_aic[[1]]))
+(confMat_log2 <- confusionMatrix(pred_threshold, survival_test))
+```
+
+Thus, this model makes predictions with a  **`r confMat_log2$overall[1]`** accuracy on the test set, which is a pretty good performance. Still, we should take into account that it needs 6 variables in order to do so.
 
 ## Bayesian logistic classifier
 
-In this section we will be fitting a Bayesian logistic regression model. We have been following the chapters 21 and 22 of the Kruschke's book (which can be download in (https://nyu-cdsc.github.io/learningr/assets/kruschke_bayesian_in_R.pdf)). Moreover, we have been following the github blog (https://avehtari.github.io/modelselection/diabetes.html#4_A_Bayesian_logistic_regression_model), where there is an example on how to fit a Bayesian logistic regression model using the `rstanarm` package. 
+In this section we will be fitting a Bayesian logistic regression model. We have been following the chapters 21 and 22 of the Kruschke's book (which can be downloaded in (https://nyu-cdsc.github.io/learningr/assets/kruschke_bayesian_in_R.pdf)). Moreover, we have been following the github blog (https://avehtari.github.io/modelselection/diabetes.html), where there is an example on how to fit a Bayesian logistic regression model using the `rstanarm` package. 
 
 We will be using a Bayesian logistic regression model. It is, we assume $y_i\sim Bern(\mu)$ where $\mu=logistic(\beta_0+\sum^p_{i=1}\beta_iX_i)$ being $X_i$ the covariates. And we will be taking non-informative prior distributions.
 
 We charge the required libraries in this section:
 
-```{r}
+```{r, message=FALSE}
 library(rstan)
 library(bayesplot)
 library(rstanarm)
@@ -209,7 +281,7 @@ library(ggplot2)
 
 We will be using the `rstanarm` package which is an `R` package that emulates other `R` model-fitting functions but uses Stan via the `rstan` package. See information about the `rstanarm` package on (https://mc-stan.org/rstanarm/). 
 
-The next Bayesian logistic regression model is fitted via Stan by means of the MCMC method. 
+The next Bayesian logistic regression model is fitted via Stan by means of the MCMC method. By default the software use non-informative flat priors, we will be using these priors.
 
 ```{r}
 post <- stan_glm(DEATH_EVENT~., data = hfcrd_train,
@@ -217,7 +289,7 @@ post <- stan_glm(DEATH_EVENT~., data = hfcrd_train,
                  seed = 1234)
 ```
 
-We should check for the well-convergence of the MCMC method. The reader can run the following code if he/she is interested on see a nice shiny app where the different features related with the convergence of the MCMC method are greatly displayed. Here we can see that the convergence has been reached.
+We should check for the well-convergence of the MCMC method. The reader can run the following code if they are interested on seeing a nice shiny app where the different features related with the convergence of the MCMC method are greatly displayed. Here we can see that the convergence has been reached.
 
 ```{r}
 # launch_shinystan(post, ppd = FALSE)
@@ -225,11 +297,13 @@ We should check for the well-convergence of the MCMC method. The reader can run 
 
 In the previous shiny app there are also features related with the fitted model, the posterior distributions obtained, etc. It is really nice.
 
-Let us print the `rstanarm` object firstly:
+Let us print the `rstanarm` object firstly. We use the `summary` method. In the summary the reader can see some summary statistics of the posterior distributions and some quantities indicating wether the MCMC method has converged or not.
 
 ```{r}
-print(post)
+summary(post)
 ```
+
+As we can see, all the Rhat quantities are $1$, which indicates that the convergence has been reached. Moreover, the n_eff obtained indicates good convergence as well, because they are big enough (as a rule of thumb, we expect these numbers to be greater to 600 to have good convergence).
 
 Let us plot the posterior distributions of the parameters:
 
@@ -241,6 +315,7 @@ plot(post, "areas", prob = 0.95, prob_outer = 1) +
 Here we can not visualize as we want the curve of the posterior distributions, so let us plot apart some of these curves. We choose to plot those curves which posterior distribution seems to put few probability on the 0. Notice that, in order to check the significance of the parameters in our model, we should check whether there is a lot of probability around the 0 in the posterior distributions obtained. 
 
 ```{r}
+param_names <- names(coef(post))
 plot(post, "areas", prob = 0.95, prob_outer = 1, pars = param_names[1]) + 
   geom_vline(xintercept = 0, color = "red", lty = 2)
 plot(post, "areas", prob = 0.95, prob_outer = 1, pars = param_names[2]) + 
@@ -289,7 +364,6 @@ Thus, we have obtained an accuracy of $0.77$ with the test data set.
 We finally find the optimal threshold by means of the ROC curve.
 
 ```{r}
-library(pROC)
 roc_default <- roc(DEATH_EVENT ~ pred_test, data = hfcrd_test)
 plot(roc_default)
 ```
@@ -311,10 +385,100 @@ round(mean(xor(pr_test_tr,as.integer(hfcrd_test$DEATH_EVENT == 0))), 2)
 
 We have obtained the same accuracy, but better specificity and sensitivity. 
 
+Let us try to improve the model fitting the model only with those covariates which were significant:
+
+```{r}
+post2 <- stan_glm(DEATH_EVENT~ age + ejection_fraction + serum_creatinine  +
+                   serum_sodium + time, data = hfcrd_train,
+                 family = binomial(link = "logit"),
+                 seed = 1234)
+```
+
+The credibility intervals for the new model are:
+
+```{r}
+round(posterior_interval(post2, prob = 0.95), 3)
+```
+
+It seems that age is now including the 0 in the 95% credibility interval.
+
+Now, let us see how is the accuracy when predicting in the training sample:
+
+```{r}
+preds2 <- posterior_epred(post2)
+pred2 <- colMeans(preds2)
+pr2 <- as.integer(pred2 >= 0.5)
+# posterior classification accuracy
+round(mean(xor(pr2,as.integer(hfcrd_train$DEATH_EVENT == 0))), 2)
+```
+
+And now we compute the accuracy when predicting in the test sample:
+
+```{r}
+preds_test2 <- posterior_epred(post2, newdata = hfcrd_test)
+pred_test2 <- colMeans(preds_test2)
+pr_test2 <- as.integer(pred_test2 >= 0.5)
+# posterior classification accuracy
+round(mean(xor(pr_test2,as.integer(hfcrd_test$DEATH_EVENT == 0))), 2)
+```
+
+So, we have obtained an accuracy of $0.85$, which, indeed, improves the accuracy of the previous, which was $0.77$. The reader can observe that we have obtained better accuracy when predicting in the test sample than when predicting for the training sample. This is not what happens usually, whoreas it is a possible scenario. Let us now find the best threshold as we did before, by means of the ROC curve:
+
+```{r}
+roc_default2 <- roc(DEATH_EVENT ~ pred_test2, data = hfcrd_test)
+plot(roc_default2)
+```
+
+
+We fin the best threshold:
+
+```{r}
+best_thresh2 <- coords(roc_default2, 
+                     x = "best",
+                     best.method = "closest.topleft")
+best_thresh2
+```
+
+Hence, the best threshold is $0.48325$. Let us see for this quantity how is the accuracy:
+
+```{r}
+pr_test2_newt <- as.integer(pred_test2 >= 0.48325)
+round(mean(xor(pr_test2_newt,as.integer(hfcrd_test$DEATH_EVENT == 0))), 2)
+```
+
+And so, we are improving the accuracy! In our final Bayesian model we are obtaining an accuracy of $0.86$ when predicting the values in the test sample. Let us see other relevant quantities by means of the confusion matrix:
+
+```{r}
+(confMat_bayes2 <- confusionMatrix(as.factor(pr_test2_newt), survival_test))
+```
+
+
+
 # Conclusions
 
-*Compare the predictors based on the adequate metrics.*
+In this final section we will be comparing the three predictors using the adequate metrics. We mainly focus on the accuracy of the models and the number of variables used.
 
+
+```{r}
+results <- data.frame(
+  Model = c("Classification Tree", "Logistic classifier", "Bayesian logistic classifier"),
+  Accuracy = c(0.86, 0.86, 0.86),
+  Specificity = c(0.7812,0.7812,0.7812),
+  Sensitivity = c(0.8971,0.8971,0.8971),
+  NumVariables = c(3,6,5)
+)
+print(results)
+```
+
+As we can see, all three models have the same accuracy, specificity and sensitivity. This means that, at the end they are doing exactly the same classifications on the test data set. Notice that the results exposed in the table of accuracy, specificity and sensitivity are the ones computed when classifying with the test data set. Nonetheless, the classification tree is the model using less variables, and then the simpler one. The following predictor using less variables is the Bayesian logistic classifier, using five variables. Finally we have the logistic classifier, which uses six variables. 
+
+In the Classification tree we have analyzed which variables are the most important. Although are more than three variables which seems to be informative, only three of them are used in the classifier tree. The reader can observe that the variables chosen by the models are very similar (in all the cases `age`, `ejection_fraction`, `serum_creatinine`, `serum_sodium` and `time` are the most informative). This is a good sign that our models are selecting informative variables. We expose which variables are used for each model:
+
+- Classification tree: `serum_creatinine`, `ejection_fraction` and `time`.
+- Logistic classifier: `diabetes`, `age`, `ejection_fraction`, `serum_creatinine`, `serum_sodium` and `time`.
+- Bayesian logistic classifier: `age`, `ejection_fraction`, `serum_creatinine`, `serum_sodium` and `time`.
+
+In conclusion, despite the fact that the three models are performing remarkably similar in terms of classification, we would chose the classification tree because is the one using less variables and hence is the most simple model.
 
 
 
