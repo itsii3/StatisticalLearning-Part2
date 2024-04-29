@@ -1,0 +1,241 @@
+---
+title: "Ensemble Classifiers"
+author: "Ivet A., Laura A., Arnau G."
+output:
+  html_document:
+    df_print: paged
+  pdf_document:
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,
+                      fig.height = 4, fig.width = 6,
+                      fig.align = "center")
+```
+
+# Introduction
+
+The goal of this task is to test our knowledge on building predictive models using ensemble based tree models, as well as to help us consolidate the whole process of building a predictive pipeline.
+
+We will work with a real cancer dataset where researchers aimed to predict recurrence (re-appearance of disease some time after treatment) using the concentrations of 101 distinct peptides that had been related with this process (so they were putative recurrence biomarkers). Data are available from the `cancerDat.csv`. On the other hand, `cancerInfo.csv` contains information on the groups defined by the recurrence and the site the samples came from.
+
+The researchers had previously attempted to use some statistical models that did not perform very well, so we are asked to try using an ensemble biomarker, the best of a random forest or a boosted classifier.
+
+Let's load the data:
+
+```{r}
+cancerData <- read.csv("cancerDat.csv", sep = ";")
+cancerInfo <- read.csv("cancerInfo.csv", sep = ";")
+```
+
+# Exploratory data analysis
+
+A first step is to have a look at the data, so we display the first rows of `cancerData`:
+
+```{r}
+head(cancerData)
+```
+
+We can notice that the decimal separator used in this data is the comma, `,`. Therefore, `R` has interpreted the double values as characters instead of numeric. We define a function that handles this: it first replaces all "," by "." and then transform the values into `numeric`:
+
+```{r}
+toNumeric <- function(column) {
+  as.numeric(gsub(pattern = ",", replacement = "\\.", x = column))
+}
+cancerData[, 2:ncol(cancerData)] <- lapply(cancerData[, 2:ncol(cancerData)], 
+                                           toNumeric)
+```
+
+```{r}
+head(cancerData)
+```
+
+Now, we can also see that the columns of the data frame are actually the observations, while the rows correspond to each peptide that had been related with the cancer recurrence (the variables we want to study). We should transpose the data so the features are the columns:
+
+```{r}
+firstRowToColnames <- function(data) {
+  colnames(data) <- data[1, ]
+  data[-1, ]
+}
+cancerData <- firstRowToColnames(as.data.frame(t(cancerData)))
+head(cancerData)
+```
+
+With those last transformations, the variables have been interpreted as characters again so we should transform them into `numeric`:
+
+```{r}
+cancerData <- as.data.frame(lapply(cancerData, as.numeric))
+```
+
+Now, the `cancerData` seems to be ready to be used for predicting. Let's move into the exploration of `cancerInfo`:
+
+```{r}
+head(cancerInfo)
+```
+
+For each sample name, we have the information of its group (recovery or non-recovery, our **target**) and its site (a new variable to add for predicting). Let's do some improvements on this data frame:
+
+1. Move the `sampleNames` variable into row names.
+2. Discard the `X` variable.
+3. Convert `Group` and `sites` into factor.
+
+```{r}
+rownames(cancerInfo) <- cancerInfo$sampleNames
+cancerInfo$sampleNames <- NULL
+cancerInfo$X <- NULL
+cancerInfo$Group <- as.factor(cancerInfo$Group)
+cancerInfo$sites <- as.factor(cancerInfo$sites)
+head(cancerInfo)
+```
+
+Finally, let's create the `features` and `target` data frames:
+
+```{r}
+cancer <- cbind(cancerData, 
+                sites = cancerInfo$sites, 
+                recurrence = cancerInfo$Group)
+```
+
+Let's see how the distribution of the target is:
+
+```{r}
+barplot(table(cancer$recurrence), 
+        main = "# Observations by target", 
+        xlab = "Recurrence", 
+        col = "turquoise")
+```
+
+We have available some more data about individuals with non-recurrence than from the ones with re-appearance of disease. The difference is small so it might not affect to the prediction.
+
+It would be nice to make a deep descriptive analysis of the features. However, there are 103 of them, so it would be too large and difficult to extract characteristics of them. However, we can check for NA values and have an overall look at their distribution:
+
+```{r}
+NA_by_col <- sapply(cancer, FUN = function(x) sum(is.na(x)))
+(NA_by_col <- sort(NA_by_col[NA_by_col > 0], decreasing = TRUE))
+```
+
+There are only a few variables with a considerable amount of missing values, so in general we will benefit of having the information about all the individuals.
+
+```{r, fig.width = 10, fig.height = 5}
+boxplot(cancer[, 1:(ncol(cancer) - 2)])
+```
+
+Although tree-based methods can handle working with data in any scale, we can see that all the numeric variables take values in more or less the same range. A part from a couple of outliers, they all take values in $[15, 27]$.
+
+# Data preparation
+
+Before moving into the fitting of any model, data should be prepared. As just mentioned, scaling is not necessary when working with trees, so the only step we are going to consider is splitting the data into 2 sets: a training set $(2 / 3)$ and a test set $(1 / 3)$.
+
+```{r}
+set.seed(1234)
+n <- nrow(cancer)
+train_prop <- 2/3
+train_ind <- sample(1:n, train_prop * n)
+cancer_train <- cancer[train_ind, ]
+cancer_test <- cancer[-train_ind, ]
+```
+
+# Model Fitting
+
+In this section, we will fit two models:
+
+1. A Random Forest Classifier.
+2. A Gradient Boosting Classifier.
+
+For each of them, we will do the required tunning, train it and do a proper test-based evaluation.
+
+## Random Forest Classifier
+
+First, we will tune the number of trees and number of variables per node by implementing a grid search procedure. For each combination of hyperparameters, we will compute the model accuracy in the test set and also its out-of-bag accuracy.
+
+```{r}
+library(randomForest)
+ntree <- seq(50, 500, 50)
+nvar <- floor(ncol(cancer_train)/seq(3, 8, 1))
+RF_errTable <- data.frame(Model = character(),
+                          NumTree = integer(),
+                          NumVar = integer(),
+                          OOBacc = numeric(),
+                          TESTacc = numeric())
+errValue <- 1
+for (numTrees in ntree) {
+  for (numVars in nvar) {
+    set.seed(1234)
+    RF_cancer <- randomForest(recurrence ~ .,
+                              data = cancer_train,
+                              mtry = numVars,
+                              ntree = numTrees,
+                              importance = TRUE,
+                              na.action = na.roughfix)
+    
+    yhat <- predict(RF_cancer, newdata = cancer_test)
+    good_pred <- na.omit(yhat == cancer_test$recurrence)
+    test_acc <- sum(good_pred) / length(good_pred)
+    
+    oob_acc <- 1 - RF_cancer$err.rate[numTrees, 1]
+  
+    RF_errTable[errValue, ] <-  c(Model = "Random Forest",
+                                  NumTree = numTrees,
+                                  NumVar = numVars,
+                                  OOBacc = round(100*oob_acc, 2),
+                                  TESTacc = round(100*test_acc, 2)) 
+    errValue <- errValue + 1
+  }
+}
+```
+
+To choose the best combination of hyperparameters, we will consider a weighted mean between the test accuracy (70%) and the OOB accuracy (30%):
+
+```{r}
+RF_errTable$weight_acc <- 0.7*as.numeric(RF_errTable$TESTacc) +
+  0.3*as.numeric(RF_errTable$OOBacc)
+weight_order <- order(RF_errTable$weight_acc, decreasing = TRUE)
+(best_rf <- head(RF_errTable[weight_order, ], 1))
+```
+
+The best random forest is the one with `r as.integer(best_rf$NumTree)` trees and `r as.integer(best_rf$NumVar)` variables per node. So we use this values to fit again the corresponding model:
+
+```{r}
+set.seed(1234)
+RF_cancer <- randomForest(recurrence ~ .,
+                          data = cancer_train,
+                          mtry = as.integer(best_rf$NumVar),
+                          ntree = as.integer(best_rf$NumTree),
+                          importance = TRUE,
+                          na.action = na.roughfix)
+RF_cancer
+```
+
+By having a look at the confusion matrix, we see that the models performs poor when trying to classify individuals with recurrence. This could be because, as wee seen in the exploratory data analysis, we have fewer observations of these cases. However, it achieves a high classification rate for the non-recurrent observations. For the test set:
+
+```{r}
+library(caret)
+set.seed(1234)
+yhat <- as.factor(predict(RF_cancer, newdata = cancer_test))
+(confMat_test <- confusionMatrix(yhat, cancer_test$recurrence))
+```
+
+We achieve a high accuracy and sensitivity. However, we can wee that the test set contains only 3 recurrence cases, so maybe it is not a measure significant enough to be considered.
+
+Let's have a look at which variables are the most relevant in the prediction:
+
+```{r}
+var_imp <- RF_cancer$importance
+var_imp <- var_imp[order(abs(var_imp[, 3]), decreasing = TRUE), ]
+head(var_imp, 10)
+```
+
+The above 10 peptides seem to be the most determinant ones on re-appearance of the disease.
+
+## Gradient Boosting Classifier
+
+- Using stumps as classification trees for the response variable, compute the misclassification rates of both the learning set and the test set across 2.000 iterations. Represent graphically the error as a function of the number of boosting iterations.
+- Compare the test-set misclassification rates attained by different ensemble classifiers based on trees with maximum depth: stumps, 4-node trees, 8-node trees, and 16-node trees.
+- Eventually you can try different boosting flavours such as `xgboost` or `lightgbm` (or other).
+
+# Models comparison
+
+Compare the predictors based on the adequate metrics and propose a classifier and not more than 10 peptides as the most relevant recurrence biomarkers (the most important variables for your classifier).
+
+
