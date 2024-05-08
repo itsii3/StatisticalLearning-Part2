@@ -426,13 +426,13 @@ knitr::include_graphics("images/ReLUFunction.png")
 knitr::include_graphics("images/ArtificialNeuron.png")
 ```
 
-## In words
+## In words {.smaller}
 
-- An ANN a vector of input values $x_{1}, \ldots, x_{d}$ and combines it with some weights that are local to the neuron $\left(w_{0}, w_{1}, . ., w_{d}\right)$ to compute a net input $w_{0}+\sum_{i=1}^{d} w_{i} * x_{i}$. 
+- An ANN takes a vector of input values $x_{1}, \ldots, x_{d}$ and combines it with some weights that are local to the neuron $\left(w_{0}, w_{1}, . ., w_{d}\right)$ to compute a net input $w_{0}+\sum_{i=1}^{d} w_{i} \cdot x_{i}$. 
 
 - To compute its output, it then passes the net input through a possibly non-linear univariate activation function $g(\cdot)$, usually vchosen from a set of options such as *Sigmoid*, *Tanh* or *ReLU* functions
 
-- To dela with the  *bias*, we create an extra input variable $x_{0}$ with value always equal to 1 , and so the function computed by a single artificial neuron (parameterized by its weights $\mathbf{w}$ ) is:
+- To deal with the  *bias*, we create an extra input variable $x_{0}$ with value always equal to 1 , and so the function computed by a single artificial neuron (parameterized by its weights $\mathbf{w}$ ) is:
 
 $$
 y(\mathbf{x})=g\left(w_{0}+\sum_{i=1}^{d} w_{i} x_{i}\right)=g\left(\sum_{i=0}^{d} w_{i} x_{i}\right)=g\left(\mathbf{w}^{\mathbf{T}} \mathbf{x}\right)
@@ -468,30 +468,31 @@ network.
 
 - The leftmost layer of the network is called the *input layer*.
 
-- The rightmost layer of the network is called the output layer.
-
-  - In this example, the output layer has only one node. 
+- The rightmost layer of the network is called the *output* layer.
 
 - The middle layer of nodes is called the *hidden layer*, because its values are not observed in the training set.
 
 
-Bias nodes are not counted when stating the neuron size. In the example above we also say that our example neural network has:
+Bias nodes are not counted when stating the neuron size. 
+
+With all this in mind our example neural network has three layers with:
 
  - 3 input units (not counting the bias unit), 
- - 3 hidden units, and 
+ - 3 hidden units,  
  - 1 output unit.
 
-## How an ANN works {.smaller}
+## How an ANN works 
 
-An ANN is a predictive model (a *learner) whose properties and behaviour  can be well characterized.
+An ANN is a predictive model (a *learner*) whose properties and behaviour  can be well characterized.
 
-In practice this means:
+<!-- In practice this means: -->
 
-- The ANN operates through a process known as *forward propagation*, which encompasses the entire journey of information flow from the input layer to the output layer.
+- It operates through a process known as *forward propagation*, which encompasses the  information flow from the input layer to the output layer.
 
 - Forward propagation is performed by composing a series of linear and non-linear (activation) functions.
 
-- These are characterized (parametrized) by their *weights* and *biases*, that need to be *learnt*. This is done by *training the ANN*.
+- These are characterized (parametrized) by their *weights* and *biases*, that need to be *learnt*. 
+  - This is done by *training the ANN*.
 
 ## Training the ANN {.smaller}
 
@@ -552,7 +553,7 @@ h_{\Theta}(x)&=&a^{(3)}=f(z^{(3)})\nonumber
 \end{eqnarray}
 ```
 
-## A compact notation (2) {.smaller}
+## A compact notation (2) 
 
 More generally, recalling that we also use $a^{(1)}=x$ to also  denote the values from the input layer,
 
@@ -596,7 +597,6 @@ a_2^{(l)}\\
 \vdots\\
 a_{s_l}^{(l)}
 \end{bmatrix}
-
 $$
 
 ## A compact notation (4) {.smaller}
@@ -618,6 +618,13 @@ f(z_{s_{l+1}}^{(l)})
 \end{bmatrix}
 $$
 
+## Eficient Forward propagation
+
+- The way input data is transformed, through a series of weightings and transformations, until the ouput layer is called   *forward propagation*.
+
+- By organizing parameters in matrices, and using matrix-vector operations, fast linear algebra routines can be used to perform the required calculations in a fast efficent way.
+
+
 ## Multiple architectures for ANN
 
 -   We have so far focused on a single hidden layer neural network of the example. 
@@ -627,206 +634,6 @@ $$
 
 -   See [here the Neural Network
     Zoo](https://www.asimovinstitute.org/neural-network-zoo/).
-
-
-## Training an ANN {.smaller}
-
-- An ANN is a predictive model whose properties and behaviour  can be mathematically characterized.
-
-- In practice this means:
-  - The ANN acts by composing a series of linear and non-linear (activation) functions.
-  - These are characterized by their *weights* and *biases*, that need to be *learnt*
-  .
-- *Training* the network is done by 
-  - Selecting an appropriate (convex) loss function,
-  - Finding those weights that minimize a the total *cost* function (avg loss).
-
-## The tools for training
-
-- Training an ANN is usually done using some iterative optimization procedure such as *Gradient Descent*.
-
-- This requires evaluating derivatives in a huge number of points.
-    - Such high number may be reduced by *Stochastic Gradient Descent*.
-    - The evaluation of derivatives is simplified thanks to *Backpropagation*.
-
-## A guiding example
-
-Consider a toy ANN to illustrate the concepts
-
-::: columns
-::: {.column width="50%"}
-- Input layer with 3 input units (plus bias unit),
-- 1 hidden layer with 3 hidden units,
-- Output layer with 1 output unit.
-:::
-
-::: {.column width="50%"}
-
-```{r, fig.align='center', out.width="100%"}
-knitr::include_graphics("images/nn.jpg")
-```
-:::
-:::
-
-## A logistic regression ANN
-
-- From input layer to layer 2: A non-linear transformation yields new set of complex features.
-
-- From layer 2 to output layer: New features are transformed, using a sigmoid activation function.
-
-$$
-\mbox{The final output is: }h_{\theta}(x)=\frac{1}{1+e^{-\theta^\intercal x}}
-$$
-
-## Logistic regression (1)
-
-Recall that, the logistic regression model is:
-
-$$
-\log\frac{p(Y=1|x)}{1-p(Y=1|x)}=\theta^\intercal x
-$$
-
-Isolating $p(Y=1|x)$ and taking logs in both sides:
-
-$$
-\frac{p(Y=1|x)}{1-p(Y=1|x)}=e^{\theta^\intercal x}
-$$
-
-## Logistic regression (2)
-
-$$
-p(Y=1|x)=\frac{e^{\theta^\intercal x}}{1+e^{\theta^\intercal x}}=\frac{1}{1+e^{-\theta^\intercal x}}
-$$
-
--   That is: *when the activation function of the output node is the sigmoid activation function, the output coincides with a logistic regression on complex features*
-
--   The output of the ANN. $h_{\theta}(x)$, estimates $p(Y=1|x)$.
-
-## ANN have weights aka *parameters*
-
-- Let $n_l$ denote the number of layers in our network, thus $n_l=3$ in our example.
-- Layer $L_1$ is input layer, and layer $L_{n_l}=L_3$ the output layer.
-- Our ANN has parameters $\Theta=(\Theta^{(1)},\Theta^{(2)})$, where:
-  - $\theta^{(l)}_{ij}$ denotes weights associated with
-    - the connection between unit $j$ in layer $l$ and
-    - unit $i$ in layer $l+1$.
-
-## Back to the example:
-
--   Thus, in our example, we have:
-
-    -   $\Theta^{(1)}\in\mathbb{R}^{3\times 4}$, and
-    -   $\Theta^{(2)}\in\mathbb{R}^{1\times 4}$.
-
-Note that bias units don't have inputs or connections going into them, since they always output the value +1.
-
-## The ANN is defined by its weights
-
-- Let $s_l$ denote the number of nodes in layer $l$ (not counting the bias unit).
-
-- Now, write $a^{(l)}_i$ to denote the activation (meaning output value) of unit $i$ in layer $l$.
-
-  - For $l=1$, $a^{(1)}_i=x_i$ denotes $i$-th input.
-
-- Given a fixed setting of the parameters $\Theta$, this ANN defines a model $h_{\Theta}(x)$ that outputs a real number.
-
-## Combining everything to compute {.smaller}
-
--   We can now see *how these weights are used to produce the output*: \begin{eqnarray}
-    a_1^{(2)}&=&f(\theta_{10}^{(1)}+\theta_{11}^{(1)}x_1+\theta_{12}^{(1)}x_2+\theta_{13}^{(1)}x_3)\\
-    a_2^{(2)}&=&f(\theta_{20}^{(1)}+\theta_{21}^{(1)}x_1+\theta_{22}^{(1)}x_2+\theta_{23}^{(1)}x_3)\\
-    a_3^{(2)}&=&f(\theta_{30}^{(1)}+\theta_{31}^{(1)}x_1+\theta_{32}^{(1)}x_2+\theta_{33}^{(1)}x_3)\\
-    h_{\Theta}(x)&=&a_1^{(3)}=f(\theta_{10}^{(2)}+\theta_{11}^{(2)}a_1^{(2)}+\theta_{12}^{(2)}a_2^{(2)}+\theta_{13}^{(2)}a_3^{(2)})
-    \end{eqnarray}
-
--   Now, letting $z_i^{(l)}$ denote the total weighted sum of inputs to unit $i$ in layer $l$, including the bias term $$z_i^{(2)}=\theta_{i0}^{(1)}+\theta_{i1}^{(1)}x_1+\theta_{i2}^{(1)}x_2+\theta_{i3}^{(1)}x_3,
-    $$ the output becomes: $a_i^{(l)}=f(z_i^{(l)})$.
-
-## Compacting notation {.smaller}
-
-- Note that this easily lends itself to a more compact notation.
-
-- Activation functions $f(\cdot)$ apply to individual neurons, so it is admisible to write:
-$$
-    f([z_1,z_2,z_3]) = [f(z_1), f(z_2),f(z_3)],
-$$
-
-- A more compact notation for previous equations:
-
-$$
-\begin{eqnarray*}
-z^{(2)}&=&\Theta^{(1)}x\nonumber\\
-a^{(2)}&=&f(z^{(2)})\nonumber\\
-z^{(3)}&=&\Theta^{(2)}a^{(2)}\nonumber\\
-h_{\Theta}(x)&=&a^{(3)}=f(z^{(3)})\nonumber
-\end{eqnarray*}
-$$
-
-## Compacting notation (II)
-
--   More generally, recalling that we also use $a^{(1)}=x$ to also denote the values from the input layer,
-
--   then given layer $l$'s activations $a^{(l)}$, we can compute layer $l+1$'s activations $a^{(l+1)}$ as:
-
-```{=tex}
-\begin{eqnarray}
-z^{(l+1)}&=&\Theta^{(l)}a^{(l)}\\
-a^{(l+1)}&=&f(z^{(l+1)})
-\end{eqnarray}
-```
-
-## Matricial representation (I) {.smaller}
-
-- The output in layer $l+1$, from layer $l$ can be written as a *matrix product*
-
-$$
-z^{(l+1)}=
-\begin{bmatrix}
-z_1^{(l+1)}\\
-z_2^{(l+1)}\\
-\vdots\\
-z_{s_{l+1}}^{(l)}
-\end{bmatrix}=
-\begin{bmatrix}
-\theta_{10}^{(l)}& \theta_{11}^{(l)}&\theta_{12}^{(l)}&...&\theta_{1s_{l}}^{(l)}&\\
-\theta_{20}^{(l)}& \theta_{21}^{(l)}&\theta_{22}^{(l)}&...&\theta_{2s_{l}}^{(l)}&\\
-\vdots & \vdots& \vdots & \vdots & \vdots\\
-\theta_{s_{l+1}0}^{(l)}& \theta_{s_{l+1}1}^{(l)}&\theta_{s_{l+1}2}^{(l)}&...&\theta_{s_{l+1}s_{l}}^{(l)}&\\
-\end{bmatrix}
-\cdot\begin{bmatrix}
-1\\
-a_1^{(l)}\\
-a_2^{(l)}\\
-\vdots\\
-a_{s_l}^{(l)}
-\end{bmatrix}
-$$
-
-## Matricial representation (II)
-
-The activation is then:
-
-$$
-a^{(l+1)}=
-\begin{bmatrix}
-a_1^{(l+1)}\\
-a_2^{(l+1)}\\
-\vdots\\
-a_{s_{l+1}}^{(l)}
-\end{bmatrix}=f(z^{(l+1)})=\begin{bmatrix}
-f(z_1^{(l+1)})\\
-f(z_2^{(l+1)})\\
-\vdots\\
-f(z_{s_{l+1}}^{(l)})
-\end{bmatrix}
-$$
-
-
-## Eficient Forward propagation
-
-- The way input data is transformed, through a series of weightings and transformations, until the ouput layer is called   *forward propagation*.
-
-- By organizing parameters in matrices, and using matrix-vector operations, fast linear algebra routines can be used to perform the required calculations in a fast efficent way.
 
 
 ## Multiple architectures for ANN {.smaller}
@@ -866,32 +673,45 @@ $$
     -   All computations are done by Forward propagation
     -   The connectivity graph does not have any directed loops or cycles.
 
-# Optimizing the ANN
+# Training Neural Networks
 
-# Optimizitation for ANN
 
-- The equations described above show how to use forward propagation to yield a prediction, given an input and a set of parameters (weights and biases).
+## Training an ANN {.smaller}
 
-- As with any learning tasks what we want to do is finding a set of parameter's best values that, in some sense provide the best possible prediction.
+- An ANN is a predictive model whose properties and behaviour  can be mathematically characterized.
 
-- For this we need two things
+- In practice this means:
+  - The ANN acts by composing a series of linear and non-linear (activation) functions.
+  - These are characterized by their *weights* and *biases*, that need to be *learnt*
+  .
+- *Training* the network is done by 
+  - Selecting an appropriate (convex) loss function,
+  - Finding those weights that minimize a the total *cost* function (avg loss).
 
-  - A loss function to quantify the difference between reali world and predictions.
-  - Some optimization procedure(s) to iteratively tune the parameter' values in order to minimize the loss.
+## The tools for training
+
+- Training an ANN is usually done using some iterative optimization procedure such as *Gradient Descent*.
+
+- This requires evaluating derivatives in a huge number of points.
+    - Such high number may be reduced by *Stochastic Gradient Descent*.
+    - The evaluation of derivatives is simplified thanks to *Backpropagation*.
 
 ## A loss function for optimization
 
-A first idea may be to use *squared error loss*:
+Depending on the form of the activation function we may decide to use one or another form of loss function.
 
+-   At first an idea may be to use *squared error loss*:
 $$
   l(h_\theta(x),y)=\left (y-\frac{1}{1+e^{-\theta^\intercal x}}\right )^2
 $$
 
-However it happens to be that [*this is is not a convex   problem*](https://towardsdatascience.com/why-not-mse-as-a-loss-function-for-logistic-regression-589816b5e03c)  which means that MSE is not appropriate.
+- However it happens to be that, given a sigmoid activation function, the resulting loss function [* is  not a convex   problem*](https://towardsdatascience.com/why-not-mse-as-a-loss-function-for-logistic-regression-589816b5e03c)  which means that MSE is not appropriate.
 
-## Non convexity illustration {.smaller}
+- Quadratic loss may be used, for instance, with ReLu activation.
 
-```{r, eval=FALSE}
+## Illustrating non-convexity {.smaller}
+
+```{r, eval=FALSE, echo=TRUE}
 library(plot3D)
 
 # Define the squared error loss function
@@ -909,15 +729,13 @@ x <- seq(-10, 10, length.out = 200)
 y <- seq(-10, 10, length.out = 200)
 z <- outer(x, y, FUN = function(x, y) squared_error(1, logistic(x + y)))
 
-# Scale the z values to exaggerate the differences
-z <- z * 500
-
 # Plot the exaggerated loss surface
-persp3D(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue", ticktype = "detailed", xlab = "Weight 1", ylab = "Weight 2", zlab = "Loss")
+persp3D(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
+        ticktype = "detailed", xlab = "Weight 1", ylab = "Weight 2", zlab = "Loss")
 
 ```
 
-## Non convexity illustration {.smaller}
+## Illustrating non-convexity {.smaller}
 
 ```{r echo=FALSE}
 library(plot3D)
@@ -937,8 +755,6 @@ x <- seq(-10, 10, length.out = 200)
 y <- seq(-10, 10, length.out = 200)
 z <- outer(x, y, FUN = function(x, y) squared_error(1, logistic(x + y)))
 
-# Scale the z values to exaggerate the differences
-z <- z * 500
 
 # Plot the exaggerated loss surface
 persp3D(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue", ticktype = "detailed", xlab = "Weight 1", ylab = "Weight 2", zlab = "Loss")
@@ -946,7 +762,7 @@ persp3D(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue", ticktype
 ```
 
 
-## **Binary cross-entropy loss function** 
+## Cross-entropy loss function {.smaller}
 
 $$
     l(h_\theta(x),y)=\big{\{}\begin{array}{ll}
@@ -983,10 +799,9 @@ J(\Theta)&=&-\frac{1}{n}\big[\sum_{i=1}^n \sum_{k=1}^K y_k^{(i)}\log( h_\theta(x
 ```
 
 
-## Gradient Descent {.smaller}
+## Gradient Descent 
 
-- We saw in the previous section that training a network corresponds to choosing the parameters, that is, the weights and biases, that minimize
-the cost function. 
+- Training a network corresponds to choosing the parameters, that is, the weights and biases, that minimize the cost function. 
 
 - The weights and biases take the form of
 matrices and vectors, but at this stage it is convenient to imagine them
@@ -1004,125 +819,330 @@ $J: \mathbb{R}^p\rightarrow \mathbb{R}$.
 - *Gradient Descent* is a classical method in optimization that is often
 referred to as *steepest descent*.
 
-Given a function $J(\theta)$ to be minimized, the method proceeds iteratively, computing a sequence of vectors $\theta^1, \theta^2, ..., \theta^n$ in $\mathbb{R}^p$ with the
+- Given a function $J(\theta)$ to be minimized, the method proceeds iteratively, computing a sequence of vectors $\theta^1, \theta^2, ..., \theta^n$ in $\mathbb{R}^p$ with the
 aim of converging to a vector that minimizes the cost function. 
 
-Suppose that our current vector is $\theta$. 
+- Suppose that our current vector is $\theta$. 
 *How should we choose a perturbation, $\Delta\theta$, so that the next vector, $\theta+\Delta\theta$, represents an improvement, that is: $J(\theta +\Delta\theta) < J(\theta)$?*
 
 
 ## Gradient Descent {.smaller}
 
-As is often the case, we will proceed by linearization of the cost function using a Taylor series expansion.
+- We proceed by linearization of the cost function using a Taylor approximation
 
-If $\Delta\theta$ is small, then ignoring terms of order $||\Delta\theta||^2$ or higher, a Taylor
-series expansion gives:
+- If $\Delta\theta$ is small, then ignoring terms of order $||\Delta\theta||^2$ or higher:
 
 $$
 J(\theta+\Delta\theta)\approx J(\theta)+\sum_{i=1}^p\frac{\partial J(\theta)}{\partial\theta_i}\Delta\theta_i
 $$ 
-where ${\displaystyle \frac{\partial J(\theta)}{\partial\theta_i}}$ denotes the
+
+  - where ${\displaystyle \frac{\partial J(\theta)}{\partial\theta_i}}$ denotes the
 partial derivative of the cost function with respect to the $i$-th weight. 
 
 
 ## Gradient Descent {.smaller}
 
-For convenience, we will let $\nabla J(\theta)\in\mathbb{R}^p$
-denote the vector of partial derivatives, known as the gradient, so that
+- Let $\nabla J(\theta)\in\mathbb{R}^p$
+ denote the *gradient*, i.e. the vector of partial derivatives.
 
 \begin{equation}\label{g1}
 \nabla J(\theta)=\left(\frac{\partial J(\theta)}{\partial\theta_1},...,\frac{\partial J(\theta)}{\partial\theta_p}\right)^\intercal
-\end{equation} 
+\end{equation}
 
-Now the approximation can be written as:
+- Now the approximation can be written as:
 
 \begin{equation}\label{g2}
 J(\theta+\Delta\theta)\approx J(\theta)+\nabla J(\theta)^\intercal\Delta\theta
 \end{equation}
 
-## Gradient Descent {.smaller}
+## Gradient Descent 
 
-Recalling that our aim is to reduce the value of the cost function, the Taylor approximation above motivates the idea of choosing $\Delta\theta$ to *make $\nabla J(\theta)^\intercal\Delta\theta$ negative*, because this will make the value of $J(\theta+\Delta\theta)$ smaller. 
+- Recalling that our aim is to reduce the value of the cost function, 
+- Taylor approximation above motivates the idea of choosing $\Delta\theta$ to *make $\nabla J(\theta)^\intercal\Delta\theta$ negative*, 
+- because this will make the value of $J(\theta+\Delta\theta)$ smaller. 
 
-The bigger in absolute value we can make this negative expression, the smaller will be the value of the cost function.
+- The bigger in absolute value we can make this negative expression, the smaller will be the value of the cost function.
 
-Now, how much is it possible to make  $\nabla J(\theta)^\intercal\Delta\theta$ decrease?
+## The Cauchy-Schwarz inequality
 
-The Cauchy-Schwarz inequality, which states
-that for any $f,g\in\mathbb{R}^p$, we have:
+- The [Cauchy-Schwarz inequality](https://en.wikipedia.org/wiki/Cauchy%E2%80%93Schwarz_inequality), states that for any $f,g\in\mathbb{R}^p$, we have:
 $$
 |f^\intercal g|\leq ||f||\cdot ||g||.
 $$ 
-Moreover, the two sides are equal if and only if $f$ and $g$ are linearly dependent (meaning they
-are parallel).
+-  Moreover, the two sides are equal if and only if $f$ and $g$ are linearly dependent (meaning they are parallel).
 
-So the most negative that $f^\intercal g$ can be is $-||f||\cdot||g||$,
-which happens when $f=-g$. Hence we should choose $\Delta\theta$ to lie in the direction of $-\nabla J(\theta)$. 
+## Back to gradient descent 
+
+- How much can $\nabla J(\theta)^\intercal\Delta\theta$ decrease?
+
+- By Cauchy-Schwarz,biggest possible value for $\nabla J(\theta)^\intercal\Delta\theta$ is the upper bound, $||\nabla J(\theta)||\cdot ||\Delta\theta||$.
+  - The equality is only reached when $||\nabla J(\theta)||= ||\Delta\theta||$
+  - The highest possible negative value will  come out when $-\nabla J(\theta)=\Delta\theta$
+
+- That is, *we should choose $\Delta\theta$ to lie in the direction of $-\nabla J(\theta)$*. 
 
 
-## Gradient Descent {.smaller}
+## Gradient Descent
 
-Keeping in mind that the Taylor linearization of $J(\theta)$ is an approximation that is relevant only for small $\Delta\theta$, we
-will limit ourselves to a small step in that direction. This leads to the update:
+- Keeping in mind that the Taylor linearization of $J(\theta)$ is an approximation that is relevant only for small $\Delta\theta$, 
+- We will limit ourselves to a small step in that direction, defined by the *learning rate*. $\eta$.
+
+- This leads to the update formula that defines the steepest descent method.
 
 \begin{equation}\label{g3}
 \theta \rightarrow \theta-\eta\nabla J(\theta)
 \end{equation}
 
-\underline{This equation defines the steepest descent method}. 
-
-Here $\eta$ is small step size that, in this context, is known as the *learning rate*. 
-
-
 ## Gradient Descent {.smaller}
 
-
 In summary, givent a cost function $J(\theta)$ to be optimized the gradient descent optimization proceeds as follows:
-
 
 1. **Initialize** $\theta_0$ randomly or with some predetermined values
 2. **Repeat until convergence:**
     $$
-    \theta_{t+1} = \theta_{t} - \alpha \nabla J(\theta_{t})
+    \theta_{t+1} = \theta_{t} - \eta \nabla J(\theta_{t})
     $$
 3. **Stop when:** $|J(\theta_{t+1}) - J(\theta_{t})| < \epsilon$
 
-
-Where:
-
 - $\theta_0$ is the initial parameter vector,
 - $\theta_t$ is the parameter vector at iteration $t$,
-- $\alpha$ is the learning rate,
+- $\eta$ is the learning rate,
 - $\nabla J(\theta_{t})$ is the gradient of the loss function with respect to $\theta$ at iteration $t$,
 - $\epsilon$ is a small positive value indicating the desired level of convergence.
 
+## Computing gradients {.smaller}
 
-## Computing derivatives
+- The gradient method provides a way to optimize weights and biases $(\theta =\{W, b\})$ by minimizing the cost function, $J(\theta)$.
 
-In order to use gradient descent, we need to compute $J(\theta)$ and the
-partial derivative terms
-$$
+- This minimization requires, of course, the computation of an important number of partial derivatives
+$$ 
 \frac{\partial}{\partial\theta_j}J(\theta)
 $$
+- The algorithm used to perform these computation is known as the *backpropagation algorithm*
 
-## Initialization {.smaller}
+## A short history
 
-The input data have to be normalized to have approximately the same range. 
+- The backpropagation algorithm was originally introduced in the 1970s in a MSc thesis.
+- In 1986 a [paper by Rumelhart, Hinton, and Williams](https://www.nature.com/articles/323533a0) describes several neural networks where backpropagation works far faster than earlier approaches to learning.
+- This improvement in efficiency made it possible to use neural nets to solve problems which had previously been insoluble. 
 
-The biases can be initialized to 0. They also cannot be initialized with the same values, otherwise, all the neurons of a hidden
-layer would have the same behavior. 
 
-Perhaps the only property known with
-complete certainty is that the initial parameters need to break symmetry
-between different units. 
+## Backpropagation intuition {.smaller}
 
-We generally initialize the weights at random:
-the values $\theta_{ij}^{(l)}$ are i.i.d. Uniform on $[-c,c]$ with possibly $c= 1/\sqrt{N_l}$ where $N_l$ is the size of the hidden layer
-$l$. 
+- The name "backpropagation" originates in the expression "Error backpropagation
 
-We also sometimes initialize the weights with a normal distribution
-$N(0,0.01)$.
+- Recall that the ANN computes its output through  *forward propagation*: 
 
+- It takes the input values
+- Successively appliest a series of linear (multiplies by weights and adds biases) and non-linear (activation function) transformations, through the networks layers until the predicted value is produced
+- The predicted value, most likely will be different from the known output value in the train set.
+
+
+## Forward propagation example
+
+
+::: {.r-stack}
+
+![](images/img01.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img02.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img03.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img04.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img05.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img06.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img07.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img08.gif){.fragment .absolute top=100 left=0 width="1000" }
+:::
+
+
+## The delta rule {.smaller}
+
+- How can we use the error to update the weights using the gradient method?
+
+- The idea is to use the difference between the *real output* and the predicted output ("$\delta$") to update the weights in such a way that in the next iteration the error decrease.
+
+  - This difference is computed first for the layer
+  - And then is backpropagated to the previous layers until all the weights are recomputed and the process can re-start.
+
+## Backpropagation illustrated
+
+::: {.r-stack}
+
+![](images/img09.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img10.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img11.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img12.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img13.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img14.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img15.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img16.gif){.fragment .absolute top=100 left=0 width="1000" }
+![](images/img17.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img18.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+![](images/img19.gif){.fragment .absolute top=100 left=0 width="1000" }
+
+:::
+
+## Error backpropagation {.smaller}
+
+
+$$
+\begin{equation*}
+\Delta w=\eta(c-y) d \tag{3.21}
+\end{equation*}
+$$
+
+- La regla delta es la base de la retropropagación:
+
+  - $c$ es el valor que indica la clase en el ejemplo de entrenamiento, 
+   
+  - $y$ el valor de la función de salida para la instancia $d$, y 
+    
+  - $\eta$ la tasa o velocidad de aprendizaje (*learning rate*).
+
+- El método utilizado para entrenar este tipo de redes, y basado en la regla delta, se muestra en el algoritmo siguiente (Algoritmo 1).
+
+  - Para que el algoritmo converja es necesario que las clases de los datos sean linealmente separables.
+  
+## Algoritmo 1 (Gradiente) {.smaller}
+
+
+- **Entrada**: $W$ (conjunto de vectores de pesos) y $D$ (conjunto de instancias de entrenamiento) 
+  - mientras $\left(y \not \approx c_{i} \forall\left(d_{i}, c_{i}\right) \in D\right)$ hacer 
+    - para todo $\left(\left(d_{i}, c_{i}\right) \in D\right)$ hacer
+
+      - Calcular la salida $y$ de la red cuando la entrada es $d_{i}$
+
+      - si $\left(y \not \approx c_{i}\right)$ entonces
+        - Modificar el vector de pesos $w^{\prime}=w+\eta(c-y) d_{i}$
+
+      - fin si
+
+    - fin para
+
+  - fin mientras
+
+**Devolver**: El conjunto de vectores de pesos $W$
+
+
+## Retropropagación del error {.smaller}
+
+- En las redes multicapa no podemos aplicar el algoritmo de entrenamiento visto en la sección anterior. 
+
+- El problema aparece con los nodos de las capas ocultas: no podemos saber a priori cuáles son los valores de salida correctos.
+
+- En el caso de una neurona $j$ con función sigmoide, la regla delta es:
+
+$$
+\begin{equation*}
+\Delta w_{i}^{j}=\eta \sigma^{\prime}\left(z^{j}\right)\left(c^{j}-y^{j}\right) x_{i}^{j}, \tag{3.24}
+\end{equation*}
+$$
+
+donde:
+
+- $\sigma^{\prime}\left(z^{j}\right)$ indica la pendiente (derivada) de la función sigmoide, que representa el factor con que el nodo $j$ puede afectar al error. 
+
+
+## Ajustando los pesos {.smaller}
+
+$$
+\begin{equation*}
+\Delta w_{i}^{j}=\eta \sigma^{\prime}\left(z^{j}\right)\left(c^{j}-y^{j}\right) x_{i}^{j}, \tag{3.24}
+\end{equation*}
+$$
+
+- Si el valor de $\sigma^{\prime}\left(z^{j}\right)$ es pequeño, nos encontramos en los extremos de la función, donde los cambios no afectan demasiado a la salida. 
+- Por el contrario, si el valor es grande, nos encontramos en el centro de la función, donde pequeñas variaciones pueden alterar considerablemente la salida.
+  - $\left(c^{j}-y^{j}\right)$ representa la medida del error que se produce en la neurona $j$.
+  - $x_{i}^{j}$ indica la *responsabilidad* de la entrada $i$ de la neurona $j$ en el error. 
+
+- Cuando este valor es igual a cero, no se modifica el peso, mientras que si es superior a cero, se modifica proporcionalmente a este valor.
+
+## Expresion general de $delta$ {.smaller}
+
+- La $\delta$ que corresponde a la neurona $j$ puede expresarse de forma general para toda neurona, simplificando la notación anterior:
+
+$$
+\begin{gather*}
+\delta^{j}=\sigma^{\prime}\left(z^{j}\right)\left(c^{j}-y^{j}\right)  \tag{3.25}\\
+\Delta w_{i}^{j}=\eta \delta^{j} x_{i}^{j} \tag{3.26}
+\end{gather*}
+$$
+
+- A partir de aquí debemos determinar qué parte del error total se asigna a cada una de las neuronas de las capas ocultas. 
+
+- Es decir, debemos definir *cómo modificar los pesos y tasas de aprendizaje de las neuronas de las capas ocultas a partir del error observado en la capa de salida*.
+
+## La retropropagación {.smaller}
+
+- El método de retropropagación (backpropagation) se basa en un esquema general de dos pasos:
+
+1. Propagación hacia adelante (*feedforward*), que consiste en introducir una instancia de entrenamiento y obtener la salida de la red neuronal.
+
+2. Propagación hacia atrás (*backpropagation*), que consiste en calcular el error cometido en la capa de salida y propagarlo hacia atrás para calcular los valores delta de las neuronas de las capas ocultas.
+
+- La idea que subyace a este método es relativamente sencilla, y se basa en *propagar el error de forma proporcional a la influencia que ha tenido cada nodo de las capas ocultas en el error final producido por cada una de las neuronas de la capa de salida*.
+
+
+## El algoritmo (1) {.smaller}
+
+1. El primer paso, que es la propagación hacia adelante, consiste en aplicar el ejemplo a la red y obtener los valores de salida (línea 3 ).
+
+2. A continuación, el método inicia la propagación hacia atrás, empezando por la capa de salida. Para cada neurona $j$ de la capa de salida:
+
+  2.1 Se calcula, en primera instancia, el valor $\delta^{j}$ basado en el valor de salida de la red para la neurona $j$ $\left(y^{j}\right)$, el valor de la clase de la instancia $\left(c^{j}\right)$ y la derivada de la función sigmoide $\left(\sigma^{\prime}\left(z^{j}\right)\right)$ (línea 5).
+
+  2.2 A continuación, se modifica el vector de pesos de la neurona de la capa de salida, a partir de la tasa de aprendizaje $(\eta)$, el valor delta de la neurona calculado en el paso anterior $\left(\delta^{j}\right)$ y el factor $x_{i}^{j}$ que indica la responsabilidad de la entrada $i$ de la neurona $j$ en el error (línea 6 ).
+
+## El algoritmo (2) {.smaller}
+
+3. Finalmente, la propagación hacia atrás se aplica a las capas ocultas de la red. Para cada neurona $k$ de las capas ocultas:
+
+  3.1 En primer lugar, se calcula el valor $\delta^{k}$ basado en la derivada de la función sigmoide $\left(\sigma^{\prime}\left(z^{k}\right)\right)$ y el sumatorio del producto de la delta calculada en el paso anterior $\left(\delta^{k}\right)$ por el valor $w_{k}^{j}$, que indica el peso de la conexión entre la neurona $k$ y la neurona $j$ (línea 9). 
+  El conjunto $S_{k}$ está formado por todos los nodos de salida a los que se encuentra conectada la neurona $k$.
+
+  3.2  En el último paso de la iteración, se modifica el vector de pesos de la neurona $k$, a partir de la tasa de aprendizaje $(\eta)$, el valor delta de la neurona calculado en el paso anterior $\left(\delta^{k}\right)$ y el factor $x_{i}^{k}$ que indica la responsabilidad de la entrada $k$ de la neurona $j$ en el error (línea 10).
+
+## El algoritmo
+
+
+```{r out.width="150%", fig.align='center'}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_4.png")
+```
+
+# Training a Network
+
+## Hints for optimization
+
+- **Epoch**:  The set of samples used to train the
+ANN can be applied multiple times. One
+iteration of the training set is known as an
+epoch
+
+- **Batch Learning** In batch learning, the training set is first broken up into batches
+
+  - Batch learning allows weights to be updated more frequently per epoch
+  
+## Epochs and Batches
+
+```{r out.width="150%", fig.align='center'}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_5.png")
+```
 
 # An example using R
 
@@ -1275,45 +1295,6 @@ table(actual,prediction)
 
 -   Because the stochastic gradient method is usually implemented within the context of a very large scale computation, algorithmic choices such as mini-batch size and the form of randomization are often driven by the requirements of high performance computing architectures.
 -   Also, it is, of course, possible to vary these choices, along with others, such as the learning rate, dynamically as the training progresses in an attempt to accelerate convergence.
-
-## Back propagation
-
--   Back-propagation is the algorithm used to compute the gradients of the network.
--   This procedure was developed by several authors in the decade of the 60's but is Paul J. Werbos, (1974) in his thesis when demonstrates the use of this algorithm for ANN. - Years later, (David, E.
-
-1986) presents the modern way to apply this technique to ANN, and sets the basis of the algorithm in use today.
-
-## The delta rule
-
--   In this paper, the authors presents a new method capable to change the predictions towards a desired output, they called it the delta rule.
-
--   This rule consist in compute the total error for the network and check how the error changes when certain elements from the network changes its value.
-
--   These changes are computed by differentiating the cost function with regard to each element in the network\
-
--   Which would give us a measure of how much each element is contributing to the total error of the network,
-
--   This is, computing the gradient of the cost function we can know how the total error changes with regard to each element, and therefore apply the delta rule.
-
-## Applying the chain rule
-
--   The cost function is an intricate composed function which contains the weights of all layers,
--   the problem now is that the computations of this gradients are not straightforward as in a simple function,
--   A node from a layer is the result of the composition of all the nodes from previous layers.
--   To overcome it, Back-propagation uses the chain rule of differential calculus to compute the gradients of each element in the neural network,
-
--It contains two main phases referred to as the forward phase and backward phase:
-
-## Back-propagation: **Forward Phase**:
-
--   The inputs for a data example are fed into the FNN.
--   These inputs will be propagated through the network for all the neurons in all the layers using the current set of weights, to finally compute the final output.
-
-## Back-propagation: **Backward Phase**:
-
--   Once the final output and the cost function are computed, we need to compute the gradients for all the weights in all the layers in the FNN to update them in order to reach the minimum.
--   To compute the gradients the chain rule is used, is a backwards a process from output to input,
--   Therefore we will start from the output node, compute all the gradients of the previous layer, and so on until we reach the input layer.
 
 
 # ANN example using Python
@@ -1506,27 +1487,171 @@ knitr::include_graphics("images/ANN-IrisExample11.png")
 ```
 
 
-## Weights and biases inizialization
+## Weights and biases inizialization {.smaller}
 
-- Before training the model, the weights and biases are initialized
-as random values between 0 and 1
+- Before training the model, the weights and biases are initialized as random values between 0 and 1
 
-  - w0 is the set of weights for connections between the input and
-hidden layer
-  - w1 is the set of weights for connections between the hidden and
-output layer
+  - w0 is the set of weights for connections between the input and hidden layer
+  - w1 is the set of weights for connections between the hidden and output layer
 
-- The biases bh and bo are for the hidden and output layers
-respectively
-
-## Initialize weight and biases  {.smaller}
+- The biases bh and bo are for the hidden and output layers respectively
 
 ```{r, fig.align='center', out.width="100%", fig.cap=""}
 knitr::include_graphics("images/initializeweights.png")
 ```
 
+## Determine number of batches {.smaller}
 
-# To be continued ...
+- The number of batches ‘num_batch’ is calculated from the user-determined batch size and training size.
+- The number of batches is corrected in case the
+training set size is not a multiple of the batch size.
 
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_6.png")
+```
+
+## The ANN training loop {.smaller}
+
+- Forward propagation, error determination, back
+propagation, and weight/bias updating are performed for every batch of input data
+
+- This process is repeated for multiple epochs
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_7.png")
+```
+
+## ANN input and output {.smaller}
+
+- The model takes learning rate, batch size, epochs, and the training set as input
+
+- The model will output the weights and biases for the input and hidden layer, as well as training error measurements
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_8.png")
+```
+
+## Forward propagation {.smaller}
+
+- The current batch of data is extracted from the total training set
+- The input is propagated through the layers by
+multiplying by weight matrices, adding biases, and
+running through the activation functions
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_9.png")
+```
+
+## Determine the error {.smaller}
+
+- The labels (true output) corresponding to the current batch of inputs is found
+- These are compared to the forward-propagated output of the model ‘layer2’ ($\delta$ is the derivative of the cost function)
+- This subtraction represents the cost function which, through gradient descent, will be minimized
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_10.png")
+```
+
+## Backpropagation {.smaller}
+
+- 
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_10.png")
+```
+
+## Backpropagation {.smaller}
+
+- 
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_10.png")
+```
+
+## Backpropagation {.smaller}
+
+- 
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_10.png")
+```
+
+## Backpropagation (Layer 2 to 1) {.smaller}
+
+- Using the gradient descent algorithm, the derivative of the cost with respect to weights for layer 2 is calculated
+- This is called “layer2w_delta” as this will later be subtracted from the layer2 weights to find the new set of weights
+- The change in layer2 bias is simply the layer2 error
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_11.png")
+```
+
+## Backpropagation  (Layer 1 to 0){.smaller}
+
+- The cost function must be differentiated with respect to the hidden layer weights
+- The hidden layer partial derivatives are first found
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_12.png")
+```
+
+## Backpropagation (Layer 1 to 0) {.smaller}
+
+- The partial derivatives are then multiplied to get ‘layer1w_delta’, the number used to change the layer1 weights
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_13.png")
+```
+
+## Update weights {.smaller}
+
+- Using the products found earlier, the weight matrices can now be updated
+- The respective delta matrices are multiplied by the learning rate and subtracted from the current weight values 
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_14.png")
+```
+
+## Update biases {.smaller}
+
+- Similarly, the bias deltas are subtracted from the current bias values
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_15.png")
+```
+
+## Training output
+
+- In addition to outputting the trained parameters, the training function will also output all the layer2 errors found during training
+
+- This results in one error measurement per epoch,
+which can then be plotted
+
+
+```{r, fig.align='center', out.width="100%", fig.cap=""}
+knitr::include_graphics("2.1-Introduction_to_ANN-Slides_insertimage_16.png")
+```
+
+## Test Set evaluation
+
+![](2.1-Introduction_to_ANN-Slides_insertimage_17.png)
+
+# Coding exerciseS {.smaller}
+
+- Open the program either in its R or Python versions
+
+- Run the program
+
+- Change parameters and see how it affects
+
+  - Change the number of epochs from 1000 to 100
+
+- Run cells 13 through 16 and observe the confusion matrix
+  - The model will misclassify many versicolor samples
+  - Try changing the number of epochs to other numbers
+    -  What is the lowest number of epochs that produces desirable results?
+    - What combination of parameters yields the highest training accuracy?
 
 # References and Resources
+
+
