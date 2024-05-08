@@ -76,9 +76,9 @@ head(cancerInfo)
 
 For each sample name, we have the information of its group (recovery or non-recovery, our **target**) and its site (a new variable to add for predicting). Let's do some improvements on this data frame:
 
-1. Move the `sampleNames` variable into row names.
-2. Discard the `X` variable.
-3. Convert `Group` and `sites` into factor.
+1.  Move the `sampleNames` variable into row names.
+2.  Discard the `X` variable.
+3.  Convert `Group` and `sites` into factor.
 
 ```{r}
 rownames(cancerInfo) <- cancerInfo$sampleNames
@@ -115,10 +115,18 @@ NA_by_col <- sapply(cancer, FUN = function(x) sum(is.na(x)))
 (NA_by_col <- sort(NA_by_col[NA_by_col > 0], decreasing = TRUE))
 ```
 
-There are only a few variables with a considerable amount of missing values, so in general we will benefit of having the information about all the individuals.
+There are a few variables with a considerable amount of missing values. We will handle this issue by discarding the variables with more than a 20% of missing observations. For the rest of variables with NAs, we will substitute every NA with the mean value of that variable (the `na.roughfix` function does this for us):
+
+```{r}
+vars_with_NA <- names(NA_by_col)[NA_by_col > round(nrow(cancerData)*0.2)]
+cancer_full <- cancer[, -which(names(cancer) %in% vars_with_NA)]
+cancer_full <- na.roughfix(cancer_full)
+```
+
+Let us also display a boxplot for each variable:
 
 ```{r, fig.width = 10, fig.height = 5}
-boxplot(cancer[, 1:(ncol(cancer) - 2)])
+boxplot(cancer_full[, 1:(ncol(cancer_full) - 2)])
 ```
 
 Although tree-based methods can handle working with data in any scale, we can see that all the numeric variables take values in more or less the same range. A part from a couple of outliers, they all take values in $[15, 27]$.
@@ -129,19 +137,19 @@ Before moving into the fitting of any model, data should be prepared. As just me
 
 ```{r}
 set.seed(1234)
-n <- nrow(cancer)
+n <- nrow(cancer_full)
 train_prop <- 2/3
 train_ind <- sample(1:n, train_prop * n)
-cancer_train <- cancer[train_ind, ]
-cancer_test <- cancer[-train_ind, ]
+cancer_train <- cancer_full[train_ind, ]
+cancer_test <- cancer_full[-train_ind, ]
 ```
 
 # Model Fitting
 
 In this section, we will fit two models:
 
-1. A Random Forest Classifier.
-2. A Gradient Boosting Classifier.
+1.  A Random Forest Classifier.
+2.  A Gradient Boosting Classifier.
 
 For each of them, we will do the required tunning, train it and do a proper test-based evaluation.
 
@@ -166,11 +174,9 @@ for (numTrees in ntree) {
                               data = cancer_train,
                               mtry = numVars,
                               ntree = numTrees,
-                              importance = TRUE,
-                              na.action = na.roughfix)
-    
+                              importance = TRUE)
     yhat <- predict(RF_cancer, newdata = cancer_test)
-    good_pred <- na.omit(yhat == cancer_test$recurrence)
+    good_pred <- yhat == cancer_test$recurrence
     test_acc <- sum(good_pred) / length(good_pred)
     
     oob_acc <- 1 - RF_cancer$err.rate[numTrees, 1]
@@ -202,8 +208,7 @@ RF_cancer <- randomForest(recurrence ~ .,
                           data = cancer_train,
                           mtry = as.integer(best_rf$NumVar),
                           ntree = as.integer(best_rf$NumTree),
-                          importance = TRUE,
-                          na.action = na.roughfix)
+                          importance = TRUE)
 RF_cancer
 ```
 
@@ -230,12 +235,201 @@ The above 10 peptides seem to be the most determinant ones on re-appearance of t
 
 ## Gradient Boosting Classifier
 
-- Using stumps as classification trees for the response variable, compute the misclassification rates of both the learning set and the test set across 2.000 iterations. Represent graphically the error as a function of the number of boosting iterations.
-- Compare the test-set misclassification rates attained by different ensemble classifiers based on trees with maximum depth: stumps, 4-node trees, 8-node trees, and 16-node trees.
-- Eventually you can try different boosting flavours such as `xgboost` or `lightgbm` (or other).
+The statements of the assignment are as follows:
+
+* Using stumps as classification trees for the response variable, compute the misclassification rates of both the learning set and the test set across 2.000 iterations. Represent graphically the error as a function of the number of boosting iterations.
+* Compare the test-set misclassification rates attained by different ensemble classifiers based on trees with maximum depth: stumps, 4-node trees, 8-node trees, and 16-node trees.
+* Eventually you can try different boosting flavours such as `xgboost` or `lightgbm` (or other).
+
+Let us charge the required packages:
+
+```{r, message=FALSE}
+library(xgboost)
+library(gbm)
+library(dplyr) 
+library(ggplot2)
+```
+
+Now, we prepare the data to be used with the `xgboost` package by using the `xgb.DMatrix` function. First, since the `xgb.train()` function needs the target variable as a factor of 0 and 1, we create a variable like that:
+
+```{r}
+target_train <- ifelse(cancer_train$recurrence == "REC", 1, 0)
+target_test <- ifelse(cancer_test$recurrence == "REC", 1, 0)
+```
+
+Now, we prepare the data with the functions commented above:
+
+```{r}
+cancer_train_xg <- xgb.DMatrix(
+                data  = cancer_train[,-104]
+                %>% data.matrix(),
+                label = target_train
+               )
+
+cancer_test_xg <- xgb.DMatrix(
+                data  = cancer_test[,-104]
+                %>% data.matrix(),
+                label = target_test
+               )
+```
+
+Once we have the data prepared in the suitable format, we can fit the desired model. Notice that we want to use stumps as classification trees for the response variable, thus we should use the parameter `max_depth=1`.
+
+```{r}
+set.seed(1234)
+param <- list(max_depth =1, objective = "binary:logistic",
+               eval_metric="error") 
+watchlist <- list(train = cancer_train_xg, test = cancer_test_xg)
+cancer.boost <- xgb.train(
+            data    = cancer_train_xg,
+            params  = param,
+            verbose = 0, 
+            nrounds = 2000, 
+            watchlist = watchlist
+          )
+cancer.boost$call
+```
+
+We can print the first observations of the evaluation log. Since we have used `eval_metric="error"` and the watchlist , we obtain in the evaluation log the train and test error for each iteration:
+
+```{r}
+head(cancer.boost$evaluation_log)
+```
+
+Having this information, we can represent graphically the error as a function of the number of boosting iteration. We firstly plot it in the case of the tain set:
+
+```{r}
+ggplot(as.data.frame(cancer.boost$evaluation_log))+
+  geom_line(aes(x=iter, y=train_error), color="tomato")+
+  ggtitle("Error as a function of boosting iterations, train set")+
+  labs(x="Boosting iterations", y="Error")
+```
+
+As we can see, the error is quickly reduced to 0 as the boosting iterations increase. Now we see what happens with the test error:
+
+```{r}
+ggplot(as.data.frame(cancer.boost$evaluation_log))+
+  geom_line(aes(x=iter, y=test_error), color="blue")+
+  ggtitle("Error as a function of boosting iterations, test set")+
+  labs(x="Boosting iterations", y="Error")
+```
+
+In this case, we can see that the error is not reduced when the iterations increase. The reader can observe that the error is constant from the (approx) 260 iterations to the 2000 iterations. In addition, from the 0 iterations to the approximately 260 iterations the error does not follow a continuous trend, and show different ups and downs. Hence, this two plots suggests that there is some overfitting, due the fact that in the training set the error decrease quickly to 0, but in the test set this is not the case.
+
+Now, it is time to solve the second question in the statements. It is, *Compare the test-set misclassification rates attained by different ensemble classifiers based on trees with maximum depth: stumps, 4-node trees, 8-node trees, and 16-node trees*.
+
+In order to solve the problem proposed, we will be using a similar code than above, but in this case we will fit four different ensemble classifier, with maximum depth: stum, 4, 8 and 16. Once we have this models fitted, we will produce similar graphics than above to compare the error in the test set for different boosting iterations, and for the different models.
+
+First we fit the three models (we already have the stumps one):
+
+```{r}
+m_depth <- c(4,8,16)
+models_list <- list()
+count <- 1
+for(i in m_depth){
+  set.seed(1234)
+  param <- list(max_depth =i, objective = "binary:logistic",
+               eval_metric="error") 
+  watchlist <- list(train = cancer_train_xg, test = cancer_test_xg)
+  models_list[[count]] <- xgb.train(
+            data    = cancer_train_xg,
+            params  = param,
+            verbose = 0, 
+            nrounds = 2000, 
+            watchlist = watchlist
+          )
+  count <- count + 1
+}
+```
+
+Now, we have in a list the three models saved. We plot the errors against the iterations in the four models, in all those cases for the test data set. We first create a data frame with all the information needed to do these graphics:
+
+```{r}
+df <- data.frame(iter = 1:2000,
+                 test_error_stump = cancer.boost$evaluation_log$test_error,
+                 test_error_4 = models_list[[1]]$evaluation_log$test_error,
+                 test_error_8 = models_list[[2]]$evaluation_log$test_error,
+                 test_error_16 = models_list[[3]]$evaluation_log$test_error)
+```
+
+Now, we use `ggplot2` to plot the desired graphic:
+
+```{r}
+ggplot(df[1:700,], aes(x=iter))+
+  geom_line(aes(y=test_error_stump, color="MaxDepth=Stump"))+
+  geom_line(aes(y=test_error_4, color="MaxDepth=4"))+
+  geom_line(aes(y=test_error_8, color="MaxDepth=8"))+
+  geom_line(aes(y=test_error_16, color="MaxDepth=16"))+
+  scale_color_manual(values = c("tomato", "blue", "purple", "green"), 
+                     labels = c("MaxDepth=Stump", "MaxDepth=4", "MaxDepth=8",
+                                "MaxDepth=16")) +
+  labs(color = "Legend")+
+  labs(x="Boosting iterations", y="Error")
+```
+
+In the previous graphics we can compare the different ensemble models. We have chosen to only plot the values from the first to the iteration number 700, because from the iteration 300 on the error is constant. Thus, it is more informative to focus on the first iterations to compare the models. We can see that the models have similar ups and downs. Nonetheless, it seems than, on average, the error curve of the ensemble model with maximum depth 16-node trees is below the other error curves. Thus, this suggest that the model with MaxDepth=16 has less error and then is preferable. Moreover, the reader can observe that the purple line, the one corresponding to MaxDepth=8, is not shwon in the plot above. This is because this line is overlapped for the green line. As we can see the errors obtained are identical for the ensemble models with Max depth 8 and 16:
+
+```{r}
+head(df)
+```
+
+The reader can see in the first observations of the data set that the two last columns have the same values.
+
+Hence, the model with MaxDepth=8 has the same error than the model with MaxDepth=16. And so, I would choose the MaxDepth=8, since it is more simple model than the other one.
+
+Let us classify the data in the test data set with our classifier. From now on we work with the ensemble classifier with `MaxDepth=8`, since it is the preferred one in terms of error as we just commented. We use the function `predict()`:
+
+```{r}
+test.boost <- predict(cancer.boost, newdata = cancer_test_xg)
+head(test.boost, n=6)
+```
+
+As we can see the function `predict()` is returning probabilities, so we should choose a threshold to do the classification. We choose 0.5, since it is the most natural choice. Nonetheless, then we will be using the ROC curve to choose the optimal threshold.
+
+```{r}
+pred05 <- as.factor(1*(test.boost>0.5))
+(confMat_boost05 <- confusionMatrix(pred05, as.factor(target_test)))
+```
+
+Using the threshold 0.5, the reader can see that the accuracy obtained is poor: $46\%$ of accuracy while the No Information Rate is $53.5\%$. Let us see what happens when using the ROC curve and choosing the optimal threshold:
+
+```{r}
+library(pROC)
+roc.boost <- roc(target_test ~ test.boost)
+plot(roc.boost)
+```
+
+It seems that there is not much area under the curve, suggesting that the classification is not that good. Let us choose the optimal threshold (the one nearest to the top left), and predict using this one:
+
+```{r}
+best_thershold <- coords(roc.boost,
+                   x = "best",
+                   best.method = "closest.topleft")
+pred_best_th <- as.factor(1*(test.boost>best_thershold[[1]]))
+(confMat_boost_best_th <- confusionMatrix(pred_best_th, as.factor(target_test)))
+```
+
+Now, the classification is even worse than before.
+
+Finally, we are interested in see which are the most important variables for our classifier. To do this, we use the `xgb.importance()` function. Moreover, we do this analysis using the ensemble classifier with `MaxDepth=8`, since this is the preferreble model in terms of the error (as we comented above).
+
+```{r}
+GB_importance <- xgb.importance(model = models_list[[2]])
+head(GB_importance, n = 10)
+```
+
+In the table above we can see the 10 most relevant peptides. Here is important to comment on the metrics reported in the table:
+
+* Features: names of the features used in the model.
+* Gain: represents fractional contribution of each feature to the model based on the total gain of this feature's splits. Higher percentage means a more important predictive feature.
+* Cover: metric of the number of observation related to this feature.
+* Frequency: percentage representing the relative number of times a feature have been used in trees.
+
 
 # Models comparison
 
-Compare the predictors based on the adequate metrics and propose a classifier and not more than 10 peptides as the most relevant recurrence biomarkers (the most important variables for your classifier).
+* Compare the predictors based on the adequate metrics and propose a classifier and not more than 10 peptides as the most relevant recurrence biomarkers (the most important variables for your classifier):
+
+
 
 
